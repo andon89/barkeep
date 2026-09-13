@@ -249,3 +249,9 @@ body {
 
 /* dialogs: Tailwind preflight zeroes dialog margins; center them again */
 .drink-dialog { margin: auto; }
+
+/* ---- history ---- */
+.history { min-height: 100dvh; background: linear-gradient(180deg, var(--color-wall-deep), var(--color-wall) 30%); }
+.history-body { max-width: 44rem; margin: 0 auto; padding: 1rem 1.25rem 4rem; }
+.history-menu { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-brass-dim); }
+.history-drink summary { cursor: pointer; font-family: var(--font-display); font-style: italic; font-size: 1.2rem; }

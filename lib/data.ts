@@ -77,3 +77,17 @@ export async function saveOffMenuDrink(draft: DrinkDraft, sourcePrompt: string):
   if (error) throw error
   return data as Drink
 }
+
+export async function getHistory(): Promise<{ menus: Array<{ menu: Menu; drinks: Drink[] }>; offMenu: Drink[] }> {
+  const [{ data: menus, error: e1 }, { data: drinks, error: e2 }] = await Promise.all([
+    supabase.from('barkeep_menus').select('*').order('created_at', { ascending: false }),
+    supabase.from('barkeep_drinks').select('*').order('created_at', { ascending: false }),
+  ])
+  if (e1) throw e1
+  if (e2) throw e2
+  const all = (drinks ?? []) as Drink[]
+  return {
+    menus: ((menus ?? []) as Menu[]).map((menu) => ({ menu, drinks: all.filter((d) => d.menu_id === menu.id).sort((a, b) => a.sort_order - b.sort_order) })),
+    offMenu: all.filter((d) => d.menu_id === null),
+  }
+}
