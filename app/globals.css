@@ -193,3 +193,31 @@ body {
 @media (min-width: 900px) { .counter-grid { grid-template-columns: 1fr 1fr; } }
 
 .shelf-error { color: var(--color-amber); padding: 0.25rem 1.25rem; }
+
+/* ---- chalkboard + cards ---- */
+.chalkboard {
+  background: var(--color-board); color: var(--color-chalk);
+  border: 10px solid var(--color-wood); outline: 2px solid var(--color-wood-deep);
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.45), 0 12px 24px rgba(0,0,0,0.45);
+  padding: 1.25rem 1.5rem; min-height: 16rem;
+}
+.chalk-title { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; line-height: 1.1; }
+.chalk-list { margin-top: 0.75rem; display: grid; gap: 0.25rem; }
+.chalk-item {
+  background: none; border: 0; padding: 0.15rem 0; cursor: pointer; text-align: left;
+  font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.35rem; color: var(--color-chalk);
+  text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color 120ms;
+}
+.chalk-item:hover, .chalk-item:focus-visible { text-decoration-color: var(--color-chalk); outline: none; }
+.chalk-empty { font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.3rem; opacity: 0.8; }
+.chalk-new { margin-top: 1rem; background: none; border: 1px dashed rgba(233,228,214,0.5); color: var(--color-chalk); padding: 0.4rem 0.8rem; cursor: pointer; font-family: var(--font-body); }
+.chalk-new:hover { border-style: solid; }
+.chalk-form { margin-top: 1rem; }
+
+.drink-card {
+  background: var(--color-cream); color: var(--color-wood-deep);
+  padding: 1.25rem 1.5rem; border-radius: 2px; max-width: 30rem;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+}
+.drink-dialog { background: transparent; border: 0; padding: 1rem; max-width: 34rem; }
+.drink-dialog::backdrop { background: rgba(0,0,0,0.6); }

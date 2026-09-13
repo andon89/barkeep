@@ -1,9 +1,9 @@
-import { getBottles } from '@/lib/data'
+import { getBottles, getActiveMenu } from '@/lib/data'
 import { BarScene } from '@/components/BarScene'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const bottles = await getBottles()
-  return <BarScene bottles={bottles} />
+  const [bottles, active] = await Promise.all([getBottles(), getActiveMenu()])
+  return <BarScene bottles={bottles} menu={active?.menu ?? null} drinks={active?.drinks ?? []} />
 }

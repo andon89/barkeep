@@ -5,9 +5,10 @@ import { BackBar } from './BackBar'
 import { ManageBottlesDrawer } from './ManageBottlesDrawer'
 import { SceneHeader } from './SceneHeader'
 import { Robot } from './Robot'
-import type { Bottle } from '@/lib/types'
+import { Chalkboard } from './Chalkboard'
+import type { Bottle, Drink, Menu } from '@/lib/types'
 
-export function BarScene({ bottles }: { bottles: Bottle[] }) {
+export function BarScene({ bottles, menu, drinks }: { bottles: Bottle[]; menu: Menu | null; drinks: Drink[] }) {
   const [manageOpen, setManageOpen] = useState(false)
   return (
     <BarStateProvider>
@@ -17,6 +18,7 @@ export function BarScene({ bottles }: { bottles: Bottle[] }) {
         <div className="counter-area">
           <div className="counter-grid">
             <Robot />
+            <Chalkboard menu={menu} drinks={drinks} />
           </div>
         </div>
         <div className="bar-top" />
