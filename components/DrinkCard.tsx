@@ -2,7 +2,10 @@ import type { Drink } from '@/lib/types'
 
 type CardDrink = Pick<Drink, 'name' | 'description' | 'ingredients' | 'instructions' | 'glassware' | 'garnish'>
 
+const NO_GARNISH = /^(none|no garnish|n\/a|-)?$/i
+
 export function DrinkCard({ drink, note }: { drink: CardDrink; note?: string }) {
+  const garnish = NO_GARNISH.test(drink.garnish.trim()) ? '' : drink.garnish.trim()
   return (
     <article className="drink-card">
       <h3 className="font-display text-2xl text-wood-deep">{drink.name}</h3>
@@ -16,7 +19,7 @@ export function DrinkCard({ drink, note }: { drink: CardDrink; note?: string }) 
         ))}
       </ul>
       <p className="mt-3">{drink.instructions}</p>
-      <p className="mt-2 text-sm text-wood-deep/70">{drink.glassware}{drink.garnish ? `, ${drink.garnish}` : ''}</p>
+      <p className="mt-2 text-sm text-wood-deep/70">{drink.glassware}{garnish ? `, ${garnish}` : ''}</p>
       {note && <p className="mt-3 text-sm font-display italic text-ember">{note}</p>}
     </article>
   )

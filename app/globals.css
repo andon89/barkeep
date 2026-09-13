@@ -228,3 +228,24 @@ body {
 .counter-label { font-family: var(--font-display); font-style: italic; font-size: 1.4rem; color: var(--color-cream); }
 .counter-result { margin-top: 1rem; animation: slide-up 300ms ease-out both; }
 @keyframes slide-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+/* ---- realism pass: bottles fill the bar ---- */
+.shelf-row { justify-content: space-between; padding-left: 1.5rem; padding-right: 1.5rem; }
+.shelf-group { flex: 1 1 0; min-width: 0; }
+.shelf-bottles { width: 100%; justify-content: space-evenly; gap: 0; }
+.bottle-btn { width: clamp(46px, 4.6vw, 78px); }
+.bottle-btn svg { width: 100%; height: auto; }
+.bottle-btn::after {
+  content: ''; position: absolute; left: 12%; right: 12%; bottom: -3px; height: 9px; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
+  pointer-events: none;
+}
+.bottle-btn[data-out="true"]::after { opacity: 0.35; }
+@media (max-width: 900px) {
+  .shelf-group { flex: 0 0 auto; }
+  .shelf-bottles { width: auto; gap: 0.15rem; }
+  .bottle-btn { width: 46px; }
+}
+
+/* dialogs: Tailwind preflight zeroes dialog margins; center them again */
+.drink-dialog { margin: auto; }

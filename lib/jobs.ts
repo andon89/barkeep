@@ -32,9 +32,10 @@ export async function runMakeJob(jobId: string, request: string): Promise<void> 
     const parsed = parseClaudeJson(text, MakeMeResponseSchema)
     const resolved = resolveMakeMe(parsed)
     if (resolved.kind === 'menu') {
-      const drink = menuDrinks.find((d) => d.id === resolved.id) ?? (await getDrink(resolved.id))
+      const onMenu = menuDrinks.find((d) => d.id === resolved.id)
+      const drink = onMenu ?? (await getDrink(resolved.id))
       if (!drink) throw new Error('The bartender pointed at a drink that is not on the board.')
-      await finishJob(jobId, { reply: parsed.reply, drink, onMenu: true })
+      await finishJob(jobId, { reply: parsed.reply, drink, onMenu: Boolean(onMenu) })
     } else {
       const drink = await saveOffMenuDrink(resolved.drink, request)
       await finishJob(jobId, { reply: parsed.reply, drink, onMenu: false })

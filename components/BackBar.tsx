@@ -36,7 +36,7 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
         <div className="shelf" key={cats.join('|')}>
           <div className="shelf-row">
             {cats.map((cat) => (
-              <div className="shelf-group" key={cat}>
+              <div className="shelf-group" key={cat} style={{ flexGrow: Math.max(1, optimistic.filter((b) => b.category === cat).length) }}>
                 <div className="shelf-bottles">
                   {optimistic.filter((b) => b.category === cat).map((b) => (
                     <button
