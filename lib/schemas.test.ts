@@ -14,6 +14,21 @@ describe('parseClaudeJson', () => {
   it('throws a clear error when the shape is wrong', () => {
     expect(() => parseClaudeJson('{"title":"T"}', MenuResponseSchema)).toThrow(/intro|drinks/)
   })
+  it('picks the last fenced block when an earlier one is an example', () => {
+    const text = 'Example:\n```json\n{"title":"EXAMPLE","intro":"x","drinks":[]}\n```\nReal one:\n```json\n{"title":"Real","intro":"I","drinks":[]}\n```\n'
+    expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('Real')
+  })
+  it('ignores a stray brace in surrounding prose', () => {
+    const text = 'Sure { here you go: {"title":"T","intro":"I","drinks":[]} cheers'
+    expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('T')
+  })
+  it('handles a closing brace inside a string value', () => {
+    const text = '{"title":"Odd } name","intro":"I","drinks":[]}'
+    expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('Odd } name')
+  })
+  it('throws No JSON object on truncated JSON', () => {
+    expect(() => parseClaudeJson('{"title":"T","intro":', MenuResponseSchema)).toThrow(/No JSON object/)
+  })
 })
 
 describe('resolveMakeMe', () => {
