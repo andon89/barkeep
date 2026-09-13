@@ -55,8 +55,13 @@ alter table barkeep_drinks enable row level security;
 alter table barkeep_jobs enable row level security;
 alter table barkeep_meta enable row level security;
 
-create policy "allow all" on barkeep_bottles for all using (true) with check (true);
-create policy "allow all" on barkeep_menus for all using (true) with check (true);
-create policy "allow all" on barkeep_drinks for all using (true) with check (true);
-create policy "allow all" on barkeep_jobs for all using (true) with check (true);
-create policy "allow all" on barkeep_meta for all using (true) with check (true);
+drop policy if exists "service role only" on barkeep_bottles;
+create policy "service role only" on barkeep_bottles for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+drop policy if exists "service role only" on barkeep_menus;
+create policy "service role only" on barkeep_menus for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+drop policy if exists "service role only" on barkeep_drinks;
+create policy "service role only" on barkeep_drinks for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+drop policy if exists "service role only" on barkeep_jobs;
+create policy "service role only" on barkeep_jobs for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+drop policy if exists "service role only" on barkeep_meta;
+create policy "service role only" on barkeep_meta for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
