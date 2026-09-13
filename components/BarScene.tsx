@@ -4,6 +4,7 @@ import { BarStateProvider } from './BarState'
 import { BackBar } from './BackBar'
 import { ManageBottlesDrawer } from './ManageBottlesDrawer'
 import { SceneHeader } from './SceneHeader'
+import { Robot } from './Robot'
 import type { Bottle } from '@/lib/types'
 
 export function BarScene({ bottles }: { bottles: Bottle[] }) {
@@ -13,7 +14,11 @@ export function BarScene({ bottles }: { bottles: Bottle[] }) {
       <main className="scene">
         <SceneHeader onManage={() => setManageOpen(true)} />
         <BackBar bottles={bottles} />
-        <div className="counter-area" />
+        <div className="counter-area">
+          <div className="counter-grid">
+            <Robot />
+          </div>
+        </div>
         <div className="bar-top" />
       </main>
       <ManageBottlesDrawer bottles={bottles} open={manageOpen} onClose={() => setManageOpen(false)} />
