@@ -6,28 +6,33 @@ import { DrinkCard } from './DrinkCard'
 import type { Drink } from '@/lib/types'
 
 export function Counter() {
-  const { setRobot, setSpeech } = useBarState()
-  const { start, busy } = useJob()
+  const { setRobot, setSpeech, busy, setBusy } = useBarState()
+  const { start, busy: submitting } = useJob()
   const [ask, setAsk] = useState('')
   const [served, setServed] = useState<{ drink: Drink; onMenu: boolean } | null>(null)
 
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!ask.trim()) return
+    setBusy(true)
     setRobot('mixing')
     setSpeech('Coming up.')
     setServed(null)
-    const { result, error } = await start('/api/make', { request: ask })
-    if (error || !result) {
-      setRobot('idle')
-      setSpeech(error ?? 'Something went wrong.')
-      return
+    try {
+      const { result, error } = await start('/api/make', { request: ask })
+      if (error || !result) {
+        setRobot('idle')
+        setSpeech(error ?? 'Something went wrong.')
+        return
+      }
+      const r = result as { reply: string; drink: Drink; onMenu: boolean }
+      setRobot('presenting')
+      setSpeech(r.reply)
+      setServed({ drink: r.drink, onMenu: r.onMenu })
+      setAsk('')
+    } finally {
+      setBusy(false)
     }
-    const r = result as { reply: string; drink: Drink; onMenu: boolean }
-    setRobot('presenting')
-    setSpeech(r.reply)
-    setServed({ drink: r.drink, onMenu: r.onMenu })
-    setAsk('')
   }
 
   return (
@@ -43,7 +48,7 @@ export function Counter() {
           maxLength={300}
           disabled={busy}
         />
-        <button className="brass-button" type="submit" disabled={busy || !ask.trim()}>{busy ? 'Mixing' : 'Pour'}</button>
+        <button className="brass-button" type="submit" disabled={busy || !ask.trim()}>{submitting ? 'Mixing' : 'Pour'}</button>
       </form>
       {served && (
         <div className="counter-result">

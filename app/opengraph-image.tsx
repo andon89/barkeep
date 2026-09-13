@@ -16,13 +16,16 @@ export default function Image() {
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg,#121d1a,#1c2b26)', color: '#f3e7cf', fontFamily: 'Georgia, serif' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 22, height: 330, paddingTop: 40, background: 'radial-gradient(ellipse at 50% 100%, rgba(242,178,90,0.35), transparent 65%)' }}>
           {bottles.map((b, i) => (
-            <div key={i} style={{ width: b.w, height: b.h, background: b.c, borderRadius: '10px 10px 4px 4px', boxShadow: '0 10px 20px rgba(0,0,0,.5)' }} />
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: b.w }}>
+              <div style={{ width: b.w * 0.4, height: 34, background: b.c, borderRadius: '6px 6px 0 0' }} />
+              <div style={{ width: b.w, height: b.h, background: b.c, borderRadius: '10px 10px 4px 4px', boxShadow: '0 10px 20px rgba(0,0,0,.5)' }} />
+            </div>
           ))}
         </div>
         <div style={{ height: 16, background: 'linear-gradient(180deg,#6b4128,#4a2c1a,#2a1810)', borderTop: '3px solid #c9a24b' }} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <div style={{ fontSize: 96, color: '#c9a24b', letterSpacing: 4 }}>Barkeep</div>
-          <div style={{ fontSize: 34, color: '#b9ad97', fontStyle: 'italic' }}>A robot bartender for the home bar</div>
+          <div style={{ fontSize: 96, color: '#c9a24b', letterSpacing: 4, fontFamily: 'Fraunces, Georgia, "Times New Roman", serif' }}>Barkeep</div>
+          <div style={{ fontSize: 34, color: '#b9ad97', fontStyle: 'italic', fontFamily: 'Fraunces, Georgia, "Times New Roman", serif' }}>A robot bartender for the home bar</div>
         </div>
       </div>
     ),

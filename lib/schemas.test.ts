@@ -2,32 +2,49 @@ import { describe, it, expect } from 'vitest'
 import { MenuResponseSchema, MakeMeResponseSchema, parseClaudeJson, resolveMakeMe } from './schemas'
 
 const drink = { name: 'Last Word', description: 'Equal parts, sharp and green.', ingredients: [{ item: 'Tanqueray London Dry Gin', amount: '0.75 oz' }], instructions: 'Shake with ice, double strain.', glassware: 'Coupe', garnish: 'Brandied cherry' }
+const drinkJson = JSON.stringify(drink)
 
 describe('parseClaudeJson', () => {
   it('parses a bare JSON object', () => {
-    expect(parseClaudeJson('{"title":"T","intro":"I","drinks":[]}', MenuResponseSchema)).toEqual({ title: 'T', intro: 'I', drinks: [] })
+    expect(parseClaudeJson(`{"title":"T","intro":"I","drinks":[${drinkJson}]}`, MenuResponseSchema)).toEqual({ title: 'T', intro: 'I', drinks: [drink] })
   })
   it('strips code fences and surrounding prose', () => {
-    const text = 'Here you go:\n```json\n{"title":"T","intro":"I","drinks":[]}\n```\nEnjoy.'
+    const text = `Here you go:\n\`\`\`json\n{"title":"T","intro":"I","drinks":[${drinkJson}]}\n\`\`\`\nEnjoy.`
     expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('T')
   })
   it('throws a clear error when the shape is wrong', () => {
     expect(() => parseClaudeJson('{"title":"T"}', MenuResponseSchema)).toThrow(/intro|drinks/)
   })
   it('picks the last fenced block when an earlier one is an example', () => {
-    const text = 'Example:\n```json\n{"title":"EXAMPLE","intro":"x","drinks":[]}\n```\nReal one:\n```json\n{"title":"Real","intro":"I","drinks":[]}\n```\n'
+    const text = `Example:\n\`\`\`json\n{"title":"EXAMPLE","intro":"x","drinks":[${drinkJson}]}\n\`\`\`\nReal one:\n\`\`\`json\n{"title":"Real","intro":"I","drinks":[${drinkJson}]}\n\`\`\`\n`
     expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('Real')
   })
   it('ignores a stray brace in surrounding prose', () => {
-    const text = 'Sure { here you go: {"title":"T","intro":"I","drinks":[]} cheers'
+    const text = `Sure { here you go: {"title":"T","intro":"I","drinks":[${drinkJson}]} cheers`
     expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('T')
   })
   it('handles a closing brace inside a string value', () => {
-    const text = '{"title":"Odd } name","intro":"I","drinks":[]}'
+    const text = `{"title":"Odd } name","intro":"I","drinks":[${drinkJson}]}`
     expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('Odd } name')
   })
   it('throws No JSON object on truncated JSON', () => {
     expect(() => parseClaudeJson('{"title":"T","intro":', MenuResponseSchema)).toThrow(/No JSON object/)
+  })
+  it('parses when a stray trailing brace follows the real object', () => {
+    const text = `{"title":"T","intro":"I","drinks":[${drinkJson}]} (that is the lot })`
+    expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('T')
+  })
+  it('tries the next candidate when the later one matches JSON but fails the schema', () => {
+    const text = [
+      '```json',
+      `{"title":"Real","intro":"I","drinks":[${drinkJson}]}`,
+      '```',
+      'Shape:',
+      '```json',
+      '{"title": "string", "intro": "string", "drinks": []}',
+      '```',
+    ].join('\n')
+    expect(parseClaudeJson(text, MenuResponseSchema).title).toBe('Real')
   })
 })
 

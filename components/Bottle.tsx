@@ -18,6 +18,7 @@ function labelLines(text: string): string[] {
 
 // amount in [-1, 1]: negative darkens toward black, positive lightens toward white
 function shade(hex: string, amount: number): string {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return hex
   const n = parseInt(hex.slice(1), 16)
   const mix = (v: number) => Math.round(amount < 0 ? v * (1 + amount) : v + (255 - v) * amount)
   const clamp = (v: number) => Math.max(0, Math.min(255, v))
@@ -28,7 +29,7 @@ function shade(hex: string, amount: number): string {
 }
 
 export function Bottle({ style, height = 120, className }: { style: BottleStyle; height?: number; className?: string }) {
-  const spec = SHAPES[style.shape]
+  const spec = SHAPES[style.shape] ?? SHAPES.standard
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
   const id = (k: string) => `${k}-${uid}`
   const { glass, liquid, label, accent } = style

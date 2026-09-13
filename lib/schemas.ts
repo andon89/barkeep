@@ -9,7 +9,7 @@ export const DrinkSchema = z.object({
   glassware: z.string(),
   garnish: z.string(),
 })
-export const MenuResponseSchema = z.object({ title: z.string().min(1), intro: z.string(), drinks: z.array(DrinkSchema) })
+export const MenuResponseSchema = z.object({ title: z.string().min(1), intro: z.string(), drinks: z.array(DrinkSchema).min(1) })
 export const MakeMeResponseSchema = z.object({
   reply: z.string(),
   menu_drink_id: z.string().nullable(),
@@ -45,35 +45,45 @@ function computeInStringMask(s: string): boolean[] {
   return mask
 }
 
-// Finds the last balanced top-level `{...}` object in `s`: locates the last `}` that is not
-// inside a string, then walks backwards tracking brace depth (ignoring braces inside strings)
-// to find its matching `{`. Returns null if no such balanced object exists.
+// Finds a balanced top-level `{...}` object in `s`. A naive approach anchors on the LAST
+// unquoted `}` in the string, but a stray `}` appearing after the real object (e.g. trailing
+// commentary like "(that is the lot })") would then fail to find any matching `{` at all.
+// Instead this collects every unquoted closing brace, walks them from the end of the string
+// backwards, and for each one attempts to find its matching `{` (tracking depth, ignoring
+// braces inside strings) and JSON.parse the resulting span. The first span that both balances
+// and parses as JSON wins.
 function findLastBalancedObject(s: string): string | null {
   const mask = computeInStringMask(s)
-  let end = -1
-  for (let i = s.length - 1; i >= 0; i--) {
-    if (s[i] === '}' && !mask[i]) {
-      end = i
-      break
-    }
+  const closers: number[] = []
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === '}' && !mask[i]) closers.push(i)
   }
-  if (end === -1) return null
 
-  let depth = 1
-  let start = -1
-  for (let j = end - 1; j >= 0; j--) {
-    if (mask[j]) continue
-    if (s[j] === '}') depth++
-    else if (s[j] === '{') {
-      depth--
-      if (depth === 0) {
-        start = j
-        break
+  for (let k = closers.length - 1; k >= 0; k--) {
+    const end = closers[k]
+    let depth = 1
+    let start = -1
+    for (let j = end - 1; j >= 0; j--) {
+      if (mask[j]) continue
+      if (s[j] === '}') depth++
+      else if (s[j] === '{') {
+        depth--
+        if (depth === 0) {
+          start = j
+          break
+        }
       }
     }
+    if (start === -1) continue
+    const span = s.slice(start, end + 1)
+    try {
+      JSON.parse(span)
+      return span
+    } catch {
+      continue
+    }
   }
-  if (start === -1) return null
-  return s.slice(start, end + 1)
+  return null
 }
 
 export function parseClaudeJson<T>(text: string, schema: z.ZodType<T>): T {
@@ -81,6 +91,7 @@ export function parseClaudeJson<T>(text: string, schema: z.ZodType<T>): T {
   const candidates = [...fencedBlocks].reverse()
   candidates.push(text)
 
+  let lastSchemaError: z.ZodError | null = null
   for (const candidate of candidates) {
     const objectText = findLastBalancedObject(candidate)
     if (objectText === null) continue
@@ -93,8 +104,14 @@ export function parseClaudeJson<T>(text: string, schema: z.ZodType<T>): T {
     }
 
     const result = schema.safeParse(parsed)
-    if (!result.success) throw new Error(`Claude output did not match schema: ${result.error.issues.map((i) => i.path.join('.')).join(', ')}`)
+    if (!result.success) {
+      lastSchemaError = result.error
+      continue
+    }
     return result.data
+  }
+  if (lastSchemaError) {
+    throw new Error(`Claude output did not match schema: ${lastSchemaError.issues.map((i) => i.path.join('.')).join(', ')}`)
   }
   throw new Error('No JSON object in Claude output')
 }

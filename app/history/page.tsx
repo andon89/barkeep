@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import { getHistory } from '@/lib/data'
 import { DrinkCard } from '@/components/DrinkCard'
+import { SceneHeader } from '@/components/SceneHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,10 +10,7 @@ export default async function HistoryPage() {
   const { menus, offMenu } = await getHistory()
   return (
     <main className="history">
-      <header className="scene-header">
-        <Link href="/" className="sign text-3xl sm:text-4xl">Barkeep</Link>
-        <Link href="/" className="quiet-link">Back to the bar</Link>
-      </header>
+      <SceneHeader backLink />
 
       <div className="history-body">
         <h1 className="font-display text-3xl text-brass">Past menus</h1>

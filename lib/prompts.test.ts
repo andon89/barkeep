@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildInventoryBlock, buildMenuPrompt, buildMakeMePrompt, BARTENDER_SYSTEM } from './prompts'
+import { buildInventoryBlock, buildMenuPrompt, buildMakeMePrompt, quoteGuest, BARTENDER_SYSTEM } from './prompts'
 
 const bottles = [
   { name: 'Campari', category: 'Aperitifs & Vermouth', in_stock: true },
@@ -33,5 +33,16 @@ describe('buildMakeMePrompt', () => {
     expect(p).toContain('[d1] Negroni')
     expect(p).toContain('something with campari')
     expect(p).toContain('menu_drink_id')
+  })
+})
+
+describe('quoteGuest', () => {
+  it('escapes backslashes and double quotes', () => {
+    expect(quoteGuest('a "classic" bar\\night')).toBe('a \\"classic\\" bar\\\\night')
+  })
+  it('wraps the theme in guest delimiters, escaped, inside the prompt', () => {
+    const theme = 'a "classic" bar\\night'
+    const p = buildMenuPrompt([...bottles], theme)
+    expect(p).toContain('<<<guest>>>a \\"classic\\" bar\\\\night<<<end guest>>>')
   })
 })

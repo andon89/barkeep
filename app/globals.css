@@ -255,3 +255,7 @@ body {
 .history-body { max-width: 44rem; margin: 0 auto; padding: 1rem 1.25rem 4rem; }
 .history-menu { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-brass-dim); }
 .history-drink summary { cursor: pointer; font-family: var(--font-display); font-style: italic; font-size: 1.2rem; }
+
+.drink-dialog-inner { background: var(--color-cream); border-radius: 2px; box-shadow: 0 10px 22px rgba(0,0,0,0.45); }
+.drink-dialog-inner .drink-card { box-shadow: none; }
+.drink-dialog-inner > button { display: block; margin: 0 1.5rem 1rem auto; color: var(--color-wood-deep); }

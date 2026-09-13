@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAuthToken } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
-  const { passcode } = await request.json()
+  const { passcode } = await request.json().catch(() => ({}))
   if (passcode === process.env.BARKEEP_PASSCODE) {
     const response = NextResponse.json({ success: true })
     response.cookies.set('barkeep_auth', createAuthToken(), {

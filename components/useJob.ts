@@ -12,7 +12,7 @@ export function useJob() {
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       if (res.status !== 202) return { result: null, error: (await res.json().catch(() => ({}))).error ?? 'The bartender is not answering.' }
       const { jobId } = await res.json()
-      const deadline = Date.now() + 240_000
+      const deadline = Date.now() + 300_000
       while (Date.now() < deadline) {
         await new Promise((r) => setTimeout(r, 2000))
         let poll: Response

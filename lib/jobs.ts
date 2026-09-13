@@ -4,6 +4,18 @@ import { parseClaudeJson, MenuResponseSchema, MakeMeResponseSchema, resolveMakeM
 import { buildMenuPrompt, buildMakeMePrompt } from './prompts'
 import { getBottles, getActiveMenu, createMenu, getDrink, saveOffMenuDrink, finishJob, failJob } from './data'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function userMessage(err: unknown): string {
+  if (err instanceof Error) {
+    const m = err.message
+    if (m.startsWith('Nothing on the shelf') || m.includes('not on the board') || m.includes('did not match schema') || m === 'No JSON object in Claude output') {
+      return m
+    }
+  }
+  return 'The bartender got stuck. Try again.'
+}
+
 export async function runMenuJob(jobId: string, theme: string | null): Promise<void> {
   try {
     const bottles = (await getBottles()).filter((b) => b.in_stock)
@@ -15,7 +27,7 @@ export async function runMenuJob(jobId: string, theme: string | null): Promise<v
   } catch (err) {
     console.error('menu job failed', jobId, err)
     try {
-      await failJob(jobId, err instanceof Error ? err.message : 'The bartender got stuck. Try again.')
+      await failJob(jobId, userMessage(err))
     } catch (failErr) {
       console.error('failed to record menu job failure', jobId, failErr)
     }
@@ -33,7 +45,7 @@ export async function runMakeJob(jobId: string, request: string): Promise<void> 
     const resolved = resolveMakeMe(parsed)
     if (resolved.kind === 'menu') {
       const onMenu = menuDrinks.find((d) => d.id === resolved.id)
-      const drink = onMenu ?? (await getDrink(resolved.id))
+      const drink = onMenu ?? (UUID_RE.test(resolved.id) ? await getDrink(resolved.id) : null)
       if (!drink) throw new Error('The bartender pointed at a drink that is not on the board.')
       await finishJob(jobId, { reply: parsed.reply, drink, onMenu: Boolean(onMenu) })
     } else {
@@ -43,7 +55,7 @@ export async function runMakeJob(jobId: string, request: string): Promise<void> 
   } catch (err) {
     console.error('make job failed', jobId, err)
     try {
-      await failJob(jobId, err instanceof Error ? err.message : 'The bartender got stuck. Try again.')
+      await failJob(jobId, userMessage(err))
     } catch (failErr) {
       console.error('failed to record make job failure', jobId, failErr)
     }

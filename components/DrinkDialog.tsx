@@ -14,9 +14,9 @@ export function DrinkDialog({ drink, onClose }: { drink: Drink | null; onClose: 
   return (
     <dialog ref={ref} className="drink-dialog" onClose={onClose}>
       {drink && (
-        <div>
+        <div className="drink-dialog-inner">
           <DrinkCard drink={drink} />
-          <button type="button" className="quiet-link mt-3" onClick={onClose}>Close</button>
+          <button type="button" className="quiet-link" onClick={onClose}>Close</button>
         </div>
       )}
     </dialog>
