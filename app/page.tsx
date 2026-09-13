@@ -1,8 +1,9 @@
-export default function Home() {
-  return (
-    <main className="p-8">
-      <h1 className="sign text-5xl">Barkeep</h1>
-      <p className="text-cream-dim mt-2">The bar is being built.</p>
-    </main>
-  )
+import { getBottles } from '@/lib/data'
+import { BarScene } from '@/components/BarScene'
+
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const bottles = await getBottles()
+  return <BarScene bottles={bottles} />
 }
