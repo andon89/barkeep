@@ -191,3 +191,5 @@ body {
 
 .counter-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: end; max-width: 72rem; margin: 0 auto; }
 @media (min-width: 900px) { .counter-grid { grid-template-columns: 1fr 1fr; } }
+
+.shelf-error { color: var(--color-amber); padding: 0.25rem 1.25rem; }

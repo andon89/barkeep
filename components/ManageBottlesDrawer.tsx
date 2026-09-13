@@ -48,15 +48,28 @@ export function ManageBottlesDrawer({ bottles, open, onClose }: { bottles: Bottl
 
   function remove(id: string) {
     if (confirmId !== id) { setConfirmId(id); return }
-    startTransition(async () => { await removeBottleAction(id); setConfirmId(null) })
+    startTransition(async () => {
+      try {
+        await removeBottleAction(id)
+        setConfirmId(null)
+      } catch {
+        setError("Couldn't remove that bottle. Try again.")
+        setConfirmId(null)
+      }
+    })
+  }
+
+  function handleClose() {
+    setConfirmId(null)
+    onClose()
   }
 
   return (
-    <dialog ref={ref} className="drawer" onClose={onClose} aria-label="Manage bottles">
+    <dialog ref={ref} className="drawer" onClose={handleClose} aria-label="Manage bottles">
       <div className="drawer-inner">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-2xl text-brass">Bottles</h2>
-          <button type="button" className="quiet-link" onClick={onClose}>Close</button>
+          <button type="button" className="quiet-link" onClick={handleClose}>Close</button>
         </div>
 
         <form onSubmit={submit} className="drawer-form">
