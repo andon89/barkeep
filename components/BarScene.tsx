@@ -6,6 +6,7 @@ import { ManageBottlesDrawer } from './ManageBottlesDrawer'
 import { SceneHeader } from './SceneHeader'
 import { Robot } from './Robot'
 import { Chalkboard } from './Chalkboard'
+import { Counter } from './Counter'
 import type { Bottle, Drink, Menu } from '@/lib/types'
 
 export function BarScene({ bottles, menu, drinks }: { bottles: Bottle[]; menu: Menu | null; drinks: Drink[] }) {
@@ -21,6 +22,7 @@ export function BarScene({ bottles, menu, drinks }: { bottles: Bottle[]; menu: M
             <Chalkboard menu={menu} drinks={drinks} />
           </div>
         </div>
+        <Counter />
         <div className="bar-top" />
       </main>
       <ManageBottlesDrawer bottles={bottles} open={manageOpen} onClose={() => setManageOpen(false)} />

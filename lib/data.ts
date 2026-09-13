@@ -65,3 +65,15 @@ export async function failJob(id: string, message: string): Promise<void> {
   const { error } = await supabase.from('barkeep_jobs').update({ status: 'failed', error: message }).eq('id', id)
   if (error) throw error
 }
+
+export async function getDrink(id: string): Promise<Drink | null> {
+  const { data, error } = await supabase.from('barkeep_drinks').select('*').eq('id', id).maybeSingle()
+  if (error) throw error
+  return (data as Drink) ?? null
+}
+
+export async function saveOffMenuDrink(draft: DrinkDraft, sourcePrompt: string): Promise<Drink> {
+  const { data, error } = await supabase.from('barkeep_drinks').insert({ ...draft, menu_id: null, source_prompt: sourcePrompt }).select().single()
+  if (error) throw error
+  return data as Drink
+}

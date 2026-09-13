@@ -221,3 +221,10 @@ body {
 }
 .drink-dialog { background: transparent; border: 0; padding: 1rem; max-width: 34rem; }
 .drink-dialog::backdrop { background: rgba(0,0,0,0.6); }
+
+/* ---- counter ---- */
+.counter { max-width: 72rem; margin: 1rem auto 0; padding: 0 1.25rem 1rem; }
+.counter-form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.counter-label { font-family: var(--font-display); font-style: italic; font-size: 1.4rem; color: var(--color-cream); }
+.counter-result { margin-top: 1rem; animation: slide-up 300ms ease-out both; }
+@keyframes slide-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
