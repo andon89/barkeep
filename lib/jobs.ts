@@ -14,6 +14,10 @@ export async function runMenuJob(jobId: string, theme: string | null): Promise<v
     await finishJob(jobId, saved)
   } catch (err) {
     console.error('menu job failed', jobId, err)
-    await failJob(jobId, err instanceof Error ? err.message : 'The bartender got stuck. Try again.')
+    try {
+      await failJob(jobId, err instanceof Error ? err.message : 'The bartender got stuck. Try again.')
+    } catch (failErr) {
+      console.error('failed to record menu job failure', jobId, failErr)
+    }
   }
 }

@@ -15,13 +15,20 @@ export function useJob() {
       const deadline = Date.now() + 240_000
       while (Date.now() < deadline) {
         await new Promise((r) => setTimeout(r, 2000))
-        const poll = await fetch(`/api/jobs/${jobId}`, { cache: 'no-store' })
+        let poll: Response
+        try {
+          poll = await fetch(`/api/jobs/${jobId}`, { cache: 'no-store' })
+        } catch {
+          continue
+        }
         if (!poll.ok) continue
         const job = await poll.json()
         if (job.status === 'done') return { result: job.result, error: null }
         if (job.status === 'failed') return { result: null, error: job.error ?? 'The bartender got stuck. Try again.' }
       }
       return { result: null, error: 'That took too long. Try again.' }
+    } catch {
+      return { result: null, error: 'Lost the bartender. Try again.' }
     } finally {
       setBusy(false)
     }
