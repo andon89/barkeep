@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { memo, useId } from 'react'
 import { SHAPES } from '@/lib/bottle-shapes'
 import type { BottleStyle } from '@/lib/types'
 
@@ -28,7 +28,9 @@ function shade(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
 }
 
-export function Bottle({ style, height = 120, className }: { style: BottleStyle; height?: number; className?: string }) {
+// Memoised: the back bar re-renders every bottle on each optimistic toggle, and each one
+// runs a dozen colour computations that only depend on its own style.
+export const Bottle = memo(function Bottle({ style, height = 120 }: { style: BottleStyle; height?: number }) {
   const spec = SHAPES[style.shape] ?? SHAPES.standard
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
   const id = (k: string) => `${k}-${uid}`
@@ -42,7 +44,7 @@ export function Bottle({ style, height = 120, className }: { style: BottleStyle;
   const labelCx = spec.label.x + spec.label.w / 2
 
   return (
-    <svg viewBox="0 0 60 160" height={height} width={height * 0.375} className={className} aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 60 160" height={height} width={height * 0.375} aria-hidden="true" focusable="false">
       <defs>
         <clipPath id={id('clip')}><path d={spec.path} /></clipPath>
         <linearGradient id={id('body')} x1="0" x2="1" y1="0" y2="0">
@@ -108,4 +110,4 @@ export function Bottle({ style, height = 120, className }: { style: BottleStyle;
       </text>
     </svg>
   )
-}
+})

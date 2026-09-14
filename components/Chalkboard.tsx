@@ -6,37 +6,26 @@ import { useBarState } from './BarState'
 import { useJob } from './useJob'
 import { DrinkDialog } from './DrinkDialog'
 import type { Drink, Menu } from '@/lib/types'
+import { GUEST_TEXT_MAX } from '@/lib/constants'
 
 export function Chalkboard({ menu, drinks }: { menu: Menu | null; drinks: Drink[] }) {
   const router = useRouter()
-  const { authed, setRobot, setSpeech, busy, setBusy } = useBarState()
-  const { start, busy: submitting } = useJob()
+  const { authed, setRobot, setSpeech, busy } = useBarState()
+  const { start, submitting } = useJob()
   const [writing, setWriting] = useState(false)
   const [theme, setTheme] = useState('')
   const [open, setOpen] = useState<Drink | null>(null)
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    setBusy(true)
-    setRobot('mixing')
-    setSpeech('Give me a minute. Reading the shelf.')
-    try {
-      const { result, error } = await start('/api/menu', { theme })
-      if (error || !result) {
-        setRobot('idle')
-        setSpeech(error ?? 'Something went wrong.')
-        router.refresh()
-        return
-      }
-      const saved = result as { menu: Menu; drinks: Drink[] }
-      setRobot('presenting')
-      setSpeech(saved.menu.intro)
-      setWriting(false)
-      setTheme('')
-      router.refresh()
-    } finally {
-      setBusy(false)
-    }
+    const result = await start('/api/menu', { theme }, 'Give me a minute. Reading the shelf.')
+    router.refresh()
+    if (!result) return
+    const saved = result as { menu: Menu; drinks: Drink[] }
+    setRobot('presenting')
+    setSpeech(saved.menu.intro)
+    setWriting(false)
+    setTheme('')
   }
 
   return (
@@ -60,7 +49,7 @@ export function Chalkboard({ menu, drinks }: { menu: Menu | null; drinks: Drink[
         <Link href="/login" className="chalk-new">Give the doorman the word to write a menu</Link>
       ) : writing ? (
         <form onSubmit={submit} className="chalk-form">
-          <input className="napkin-input w-full" placeholder="A theme, if you have one" value={theme} onChange={(e) => setTheme(e.target.value)} aria-label="Menu theme" maxLength={300} disabled={busy} />
+          <input className="napkin-input w-full" placeholder="A theme, if you have one" value={theme} onChange={(e) => setTheme(e.target.value)} aria-label="Menu theme" maxLength={GUEST_TEXT_MAX} disabled={busy} />
           <div className="flex gap-3 items-center mt-2">
             <button className="brass-button" type="submit" disabled={busy}>{submitting ? 'Writing' : 'Write tonight\'s menu'}</button>
             {!busy && <button type="button" className="quiet-link" onClick={() => setWriting(false)}>Never mind</button>}

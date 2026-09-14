@@ -1,4 +1,4 @@
-import type { BottleStyle, Category } from './types'
+import { CATEGORIES, type Bottle, type BottleStyle, type Category } from './types'
 
 const CATEGORY_DEFAULTS: Record<Category, Omit<BottleStyle, 'labelText'>> = {
   'Base Spirits':         { shape: 'tall',     glass: '#d9e4e2', liquid: '#eef2f0', label: '#f4f1e8', accent: '#2a1810' },
@@ -18,4 +18,10 @@ export function labelTextFor(name: string): string {
 
 export function defaultStyle(category: Category, name: string): BottleStyle {
   return { ...CATEGORY_DEFAULTS[category], labelText: labelTextFor(name) }
+}
+
+export function groupByCategory(bottles: Bottle[]): Record<Category, Bottle[]> {
+  const groups = Object.fromEntries(CATEGORIES.map((c) => [c, [] as Bottle[]])) as Record<Category, Bottle[]>
+  for (const b of bottles) groups[b.category]?.push(b)
+  return groups
 }

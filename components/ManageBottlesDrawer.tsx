@@ -1,37 +1,29 @@
 'use client'
-import { useEffect, useRef, useState, useTransition, FormEvent } from 'react'
+import { useMemo, useState, useTransition, FormEvent } from 'react'
 import { addBottleAction, removeBottleAction } from '@/app/actions'
-import { defaultStyle, labelTextFor } from '@/lib/bottle-defaults'
+import { defaultStyle, groupByCategory, labelTextFor } from '@/lib/bottle-defaults'
 import { Bottle } from './Bottle'
-import { CATEGORIES, SHAPE_NAMES, type Bottle as BottleRow, type Category, type Shape } from '@/lib/types'
+import { useDialogRef } from './useDialogRef'
+import { CATEGORIES, SHAPE_NAMES, type Bottle as BottleRow, type BottleStyle, type Category } from '@/lib/types'
 
 export function ManageBottlesDrawer({ bottles, open, onClose }: { bottles: BottleRow[]; open: boolean; onClose: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null)
+  const ref = useDialogRef(open)
   const [pending, startTransition] = useTransition()
   const [name, setName] = useState('')
   const [category, setCategory] = useState<Category>('Liqueurs')
-  const [shape, setShape] = useState<Shape>(defaultStyle('Liqueurs', '').shape)
-  const [liquid, setLiquid] = useState(defaultStyle('Liqueurs', '').liquid)
-  const [label, setLabel] = useState(defaultStyle('Liqueurs', '').label)
-  const [accent, setAccent] = useState(defaultStyle('Liqueurs', '').accent)
+  const [style, setStyle] = useState<BottleStyle>(() => defaultStyle('Liqueurs', ''))
   const [labelText, setLabelText] = useState('')
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const d = ref.current
-    if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
-  }, [open])
+  const groups = useMemo(() => groupByCategory(bottles), [bottles])
 
   function pickCategory(c: Category) {
     setCategory(c)
-    const d = defaultStyle(c, name)
-    setShape(d.shape); setLiquid(d.liquid); setLabel(d.label); setAccent(d.accent)
+    setStyle(defaultStyle(c, name))
   }
+  const setField = (key: keyof BottleStyle) => (e: { target: { value: string } }) => setStyle((s) => ({ ...s, [key]: e.target.value }))
 
-  const preview = { shape, glass: defaultStyle(category, name).glass, liquid, label, accent, labelText: labelText || labelTextFor(name) || 'LABEL' }
+  const preview = { ...style, labelText: labelText || labelTextFor(name) || 'LABEL' }
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -84,13 +76,13 @@ export function ManageBottlesDrawer({ bottles, open, onClose }: { bottles: Bottl
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
             <label className="drawer-field">Shape
-              <select className="napkin-input" value={shape} onChange={(e) => setShape(e.target.value as Shape)}>
+              <select className="napkin-input" value={style.shape} onChange={setField('shape')}>
                 {SHAPE_NAMES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </label>
-            <label className="drawer-field">Liquid<input type="color" value={liquid} onChange={(e) => setLiquid(e.target.value)} /></label>
-            <label className="drawer-field">Label<input type="color" value={label} onChange={(e) => setLabel(e.target.value)} /></label>
-            <label className="drawer-field">Cap and text<input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} /></label>
+            <label className="drawer-field">Liquid<input type="color" value={style.liquid} onChange={setField('liquid')} /></label>
+            <label className="drawer-field">Label<input type="color" value={style.label} onChange={setField('label')} /></label>
+            <label className="drawer-field">Cap and text<input type="color" value={style.accent} onChange={setField('accent')} /></label>
           </div>
           <div className="flex gap-2 mt-2">
             <input className="napkin-input flex-1 min-w-0" placeholder={labelTextFor(name) || 'Label text'} value={labelText} onChange={(e) => setLabelText(e.target.value)} aria-label="Label text" maxLength={16} />
@@ -103,7 +95,7 @@ export function ManageBottlesDrawer({ bottles, open, onClose }: { bottles: Bottl
           <section key={c} className="mt-5">
             <h3 className="font-display italic text-cream-dim">{c}</h3>
             <ul className="mt-1">
-              {bottles.filter((b) => b.category === c).map((b) => (
+              {groups[c].map((b) => (
                 <li key={b.id} className="flex items-center justify-between py-1 border-b border-white/5">
                   <span className={b.in_stock ? '' : 'text-cream-dim line-through'}>{b.name}</span>
                   <button type="button" className="quiet-link" onClick={() => remove(b.id)} disabled={pending}>

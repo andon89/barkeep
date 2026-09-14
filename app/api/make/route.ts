@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { waitUntil } from '@vercel/functions'
-import { createJob } from '@/lib/data'
-import { runMakeJob } from '@/lib/jobs'
+import { runMakeJob, startJob } from '@/lib/jobs'
+import { clampGuestText } from '@/lib/constants'
 
-export const maxDuration = 300
+export const maxDuration = 300 // keep in step with JOB_BUDGET_MS
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
-  const ask = typeof body.request === 'string' ? body.request.trim().slice(0, 300) : ''
+  const ask = clampGuestText(body.request)
   if (!ask) return NextResponse.json({ error: 'Tell the bartender what you want.' }, { status: 400 })
-  const job = await createJob('make', { request: ask })
-  waitUntil(runMakeJob(job.id, ask))
-  return NextResponse.json({ jobId: job.id }, { status: 202 })
+  const jobId = await startJob('make', { request: ask }, (id) => runMakeJob(id, ask))
+  return NextResponse.json({ jobId }, { status: 202 })
 }

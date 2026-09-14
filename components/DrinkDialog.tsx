@@ -1,16 +1,10 @@
 'use client'
-import { useEffect, useRef } from 'react'
 import { DrinkCard } from './DrinkCard'
+import { useDialogRef } from './useDialogRef'
 import type { Drink } from '@/lib/types'
 
 export function DrinkDialog({ drink, onClose }: { drink: Drink | null; onClose: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    const d = ref.current
-    if (!d) return
-    if (drink && !d.open) d.showModal()
-    if (!drink && d.open) d.close()
-  }, [drink])
+  const ref = useDialogRef(drink !== null)
   return (
     <dialog ref={ref} className="drink-dialog" onClose={onClose}>
       {drink && (

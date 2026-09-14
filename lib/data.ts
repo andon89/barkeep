@@ -85,19 +85,17 @@ export async function getHistory(): Promise<{ menus: Array<{ menu: Menu; drinks:
   if (e1) throw e1
   const menuList = (menus ?? []) as Menu[]
   const ids = menuList.map((m) => m.id)
-  const [{ data: menuDrinks, error: e2 }, { data: offMenuDrinks, error: e3 }] = await Promise.all([
+  const [{ data: menuDrinks, error: e2 }, { data: offMenu, error: e3 }] = await Promise.all([
     ids.length
-      ? supabase.from('barkeep_drinks').select('*').in('menu_id', ids).order('created_at', { ascending: false })
+      ? supabase.from('barkeep_drinks').select('*').in('menu_id', ids).order('sort_order')
       : Promise.resolve({ data: [], error: null }),
     supabase.from('barkeep_drinks').select('*').is('menu_id', null).order('created_at', { ascending: false }).limit(100),
   ])
   if (e2) throw e2
   if (e3) throw e3
-  const all = [...((menuDrinks ?? []) as Drink[]), ...((offMenuDrinks ?? []) as Drink[])].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  )
+  const byMenu = (menuDrinks ?? []) as Drink[]
   return {
-    menus: menuList.map((menu) => ({ menu, drinks: all.filter((d) => d.menu_id === menu.id).sort((a, b) => a.sort_order - b.sort_order) })),
-    offMenu: all.filter((d) => d.menu_id === null),
+    menus: menuList.map((menu) => ({ menu, drinks: byMenu.filter((d) => d.menu_id === menu.id) })),
+    offMenu: (offMenu ?? []) as Drink[],
   }
 }

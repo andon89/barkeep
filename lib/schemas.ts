@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { BarkeepError } from './errors'
+import { CATEGORIES, SHAPE_NAMES } from './types'
 
 export const IngredientSchema = z.object({ item: z.string(), amount: z.string() })
 export const DrinkSchema = z.object({
@@ -12,13 +14,27 @@ export const DrinkSchema = z.object({
 export const MenuResponseSchema = z.object({ title: z.string().min(1), intro: z.string(), drinks: z.array(DrinkSchema).min(1) })
 export const MakeMeResponseSchema = z.object({
   reply: z.string(),
-  menu_drink_id: z.string().nullable(),
+  menu_drink_id: z.uuid().nullable(),
   drink: DrinkSchema.nullable(),
 })
 
 export type DrinkDraft = z.infer<typeof DrinkSchema>
-export type MenuResponse = z.infer<typeof MenuResponseSchema>
 export type MakeMeResponse = z.infer<typeof MakeMeResponseSchema>
+
+const HexColour = z.string().regex(/^#[0-9a-f]{6}$/i, 'Colours must be six-digit hex')
+export const BottleStyleSchema = z.object({
+  shape: z.enum(SHAPE_NAMES, { error: 'Unknown shape' }),
+  glass: HexColour,
+  liquid: HexColour,
+  label: HexColour,
+  labelText: z.string().trim().max(16),
+  accent: HexColour,
+})
+export const NewBottleSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(80),
+  category: z.enum(CATEGORIES, { error: 'Unknown category' }),
+  style: BottleStyleSchema,
+})
 
 // Marks, for every index in `s`, whether that character sits inside a JSON double-quoted
 // string (so a brace there is string content, not structure). Scanned forward so backslash
@@ -111,9 +127,9 @@ export function parseClaudeJson<T>(text: string, schema: z.ZodType<T>): T {
     return result.data
   }
   if (lastSchemaError) {
-    throw new Error(`Claude output did not match schema: ${lastSchemaError.issues.map((i) => i.path.join('.')).join(', ')}`)
+    throw new BarkeepError(`Claude output did not match schema: ${lastSchemaError.issues.map((i) => i.path.join('.')).join(', ')}`)
   }
-  throw new Error('No JSON object in Claude output')
+  throw new BarkeepError('No JSON object in Claude output')
 }
 
 export function resolveMakeMe(res: MakeMeResponse): { kind: 'menu'; id: string } | { kind: 'new'; drink: DrinkDraft } {

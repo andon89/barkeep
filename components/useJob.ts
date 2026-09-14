@@ -1,38 +1,58 @@
 'use client'
 import { useState } from 'react'
+import { useBarState } from './BarState'
+import { JOB_BUDGET_MS } from '@/lib/constants'
 
-export type JobResult = Record<string, unknown>
+type JobResult = Record<string, unknown>
 
+// Submits a job and polls it to completion, running the robot the whole way: mixing while it
+// works, and back to idle with the error as its line if it fails. On success the caller gets
+// the result and decides what the robot says next; on failure it gets null and is done.
 export function useJob() {
-  const [busy, setBusy] = useState(false)
+  const { setRobot, setSpeech, setBusy } = useBarState()
+  const [submitting, setSubmitting] = useState(false)
 
-  async function start(url: string, body: Record<string, unknown>): Promise<{ result: JobResult | null; error: string | null }> {
+  async function start(url: string, body: JobResult, mixingLine: string): Promise<JobResult | null> {
     setBusy(true)
+    setSubmitting(true)
+    setRobot('mixing')
+    setSpeech(mixingLine)
     try {
-      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (res.status !== 202) return { result: null, error: (await res.json().catch(() => ({}))).error ?? 'The bartender is not answering.' }
-      const { jobId } = await res.json()
-      const deadline = Date.now() + 300_000
-      while (Date.now() < deadline) {
-        await new Promise((r) => setTimeout(r, 2000))
-        let poll: Response
-        try {
-          poll = await fetch(`/api/jobs/${jobId}`, { cache: 'no-store' })
-        } catch {
-          continue
-        }
-        if (!poll.ok) continue
-        const job = await poll.json()
-        if (job.status === 'done') return { result: job.result, error: null }
-        if (job.status === 'failed') return { result: null, error: job.error ?? 'The bartender got stuck. Try again.' }
-      }
-      return { result: null, error: 'That took too long. Try again.' }
-    } catch {
-      return { result: null, error: 'Lost the bartender. Try again.' }
+      const { result, error } = await run(url, body)
+      if (result) return result
+      setRobot('idle')
+      setSpeech(error ?? 'Something went wrong.')
+      return null
     } finally {
+      setSubmitting(false)
       setBusy(false)
     }
   }
 
-  return { start, busy }
+  return { start, submitting }
+}
+
+async function run(url: string, body: JobResult): Promise<{ result: JobResult | null; error: string | null }> {
+  try {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (res.status !== 202) return { result: null, error: (await res.json().catch(() => ({}))).error ?? 'The bartender is not answering.' }
+    const { jobId } = await res.json()
+    const deadline = Date.now() + JOB_BUDGET_MS
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 2000))
+      let poll: Response
+      try {
+        poll = await fetch(`/api/jobs/${jobId}`, { cache: 'no-store' })
+      } catch {
+        continue
+      }
+      if (!poll.ok) continue
+      const job = await poll.json()
+      if (job.status === 'done') return { result: job.result, error: null }
+      if (job.status === 'failed') return { result: null, error: job.error ?? 'The bartender got stuck. Try again.' }
+    }
+    return { result: null, error: 'That took too long. Try again.' }
+  } catch {
+    return { result: null, error: 'Lost the bartender. Try again.' }
+  }
 }

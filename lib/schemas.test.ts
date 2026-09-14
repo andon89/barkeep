@@ -50,16 +50,16 @@ describe('parseClaudeJson', () => {
 
 describe('resolveMakeMe', () => {
   it('resolves to an existing menu drink', () => {
-    expect(resolveMakeMe({ reply: 'Here.', menu_drink_id: 'abc', drink: null })).toEqual({ kind: 'menu', id: 'abc' })
+    expect(resolveMakeMe({ reply: 'Here.', menu_drink_id: '11111111-1111-4111-8111-111111111111', drink: null })).toEqual({ kind: 'menu', id: '11111111-1111-4111-8111-111111111111' })
   })
   it('resolves to a new drink', () => {
     expect(resolveMakeMe({ reply: 'Here.', menu_drink_id: null, drink })).toEqual({ kind: 'new', drink })
   })
   it('rejects both or neither', () => {
-    expect(() => resolveMakeMe({ reply: 'x', menu_drink_id: 'abc', drink })).toThrow()
+    expect(() => resolveMakeMe({ reply: 'x', menu_drink_id: '11111111-1111-4111-8111-111111111111', drink })).toThrow()
     expect(() => resolveMakeMe({ reply: 'x', menu_drink_id: null, drink: null })).toThrow()
   })
   it('MakeMeResponseSchema accepts a menu pick', () => {
-    expect(MakeMeResponseSchema.safeParse({ reply: 'x', menu_drink_id: 'abc', drink: null }).success).toBe(true)
+    expect(MakeMeResponseSchema.safeParse({ reply: 'x', menu_drink_id: '11111111-1111-4111-8111-111111111111', drink: null }).success).toBe(true)
   })
 })

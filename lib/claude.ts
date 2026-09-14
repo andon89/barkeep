@@ -1,8 +1,8 @@
 import { Sandbox } from '@vercel/sandbox'
 import { supabase } from './supabase'
+import { BAR_TIME_ZONE, SANDBOX_TIMEOUT_MS } from './constants'
 
 const SNAPSHOT_KEY = 'sandbox_snapshot_id'
-const SANDBOX_TIMEOUT_MS = 280_000
 
 export type SandboxLike = {
   runCommand(o: { cmd: string; args: string[]; env?: Record<string, string>; sudo?: boolean }): Promise<{ exitCode: number; stdout(): Promise<string>; stderr(): Promise<string> }>
@@ -38,19 +38,17 @@ function requireEnv(name: string): string {
   return v
 }
 
-export async function runClaude(prompt: string, overrides: Partial<Deps> = {}): Promise<{ text: string; timings: Record<string, number> }> {
+export async function runClaude(prompt: string, overrides: Partial<Deps> = {}): Promise<string> {
   const deps: Deps = {
     createSandbox: overrides.createSandbox ?? realCreateSandbox,
     getSnapshotId: overrides.getSnapshotId ?? realGetSnapshotId,
     saveSnapshotId: overrides.saveSnapshotId ?? realSaveSnapshotId,
     oauthToken: overrides.oauthToken ?? requireEnv('CLAUDE_CODE_OAUTH_TOKEN'),
   }
-  const timings: Record<string, number> = {}
 
   let sandbox: SandboxLike | undefined
   let fresh = false
   const snapshotId = await deps.getSnapshotId()
-  let t = Date.now()
   if (snapshotId) {
     try {
       sandbox = await deps.createSandbox({ source: { type: 'snapshot', snapshotId }, timeout: SANDBOX_TIMEOUT_MS })
@@ -62,23 +60,18 @@ export async function runClaude(prompt: string, overrides: Partial<Deps> = {}): 
     fresh = true
     sandbox = await deps.createSandbox({ runtime: 'node24', timeout: SANDBOX_TIMEOUT_MS })
   }
-  timings.createMs = Date.now() - t
 
   try {
     if (fresh) {
-      t = Date.now()
       const install = await sandbox.runCommand({ cmd: 'npm', args: ['install', '-g', '@anthropic-ai/claude-code'], sudo: true })
-      timings.installMs = Date.now() - t
       if (install.exitCode !== 0) throw new Error(`CLI install failed: ${(await install.stderr()).slice(-500)}`)
     }
 
-    t = Date.now()
     const run = await sandbox.runCommand({
       cmd: 'claude',
       args: ['-p', prompt, '--dangerously-skip-permissions'],
-      env: { CLAUDE_CODE_OAUTH_TOKEN: deps.oauthToken, TZ: 'America/Los_Angeles' },
+      env: { CLAUDE_CODE_OAUTH_TOKEN: deps.oauthToken, TZ: BAR_TIME_ZONE },
     })
-    timings.runMs = Date.now() - t
     if (run.exitCode !== 0) throw new Error(`claude exited ${run.exitCode}: ${(await run.stderr()).slice(-500)}`)
     const text = (await run.stdout()).trim()
 
@@ -88,7 +81,7 @@ export async function runClaude(prompt: string, overrides: Partial<Deps> = {}): 
         await deps.saveSnapshotId(snap.snapshotId)
       } catch { /* next run self-heals */ }
     }
-    return { text, timings }
+    return text
   } finally {
     try { await sandbox.stop() } catch { /* already stopped */ }
   }

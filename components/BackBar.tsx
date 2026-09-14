@@ -1,7 +1,8 @@
 'use client'
-import { useOptimistic, useState, useTransition } from 'react'
+import { useMemo, useOptimistic, useState, useTransition } from 'react'
 import { Bottle } from './Bottle'
 import { toggleBottleAction } from '@/app/actions'
+import { groupByCategory } from '@/lib/bottle-defaults'
 import type { Bottle as BottleRow, Category } from '@/lib/types'
 
 const SHELVES: Category[][] = [
@@ -17,6 +18,7 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
   )
   const [, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const groups = useMemo(() => groupByCategory(optimistic), [optimistic])
 
   function toggle(b: BottleRow) {
     setError(null)
@@ -36,9 +38,9 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
         <div className="shelf" key={cats.join('|')}>
           <div className="shelf-row">
             {cats.map((cat) => (
-              <div className="shelf-group" key={cat} style={{ flexGrow: Math.max(1, optimistic.filter((b) => b.category === cat).length) }}>
+              <div className="shelf-group" key={cat} style={{ flexGrow: Math.max(1, groups[cat].length) }}>
                 <div className="shelf-bottles">
-                  {optimistic.filter((b) => b.category === cat).map((b) => (
+                  {groups[cat].map((b) => (
                     <button
                       key={b.id}
                       type="button"

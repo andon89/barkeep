@@ -30,7 +30,7 @@ function makeMenu(overrides: Partial<Menu> = {}): Menu {
 
 function makeDrink(overrides: Partial<Drink> = {}): Drink {
   return {
-    id: 'drink1',
+    id: '11111111-1111-4111-8111-111111111111',
     menu_id: 'menu1',
     name: 'Negroni',
     description: 'Bitter and bright.',
@@ -65,7 +65,7 @@ describe('runMakeJob', () => {
     const drink = makeDrink()
     mockData.getBottles.mockResolvedValue(bottles)
     mockData.getActiveMenu.mockResolvedValue({ menu, drinks: [drink] })
-    mockRunClaude.mockResolvedValue({ text: JSON.stringify({ reply: 'Here.', menu_drink_id: drink.id, drink: null }), timings: {} })
+    mockRunClaude.mockResolvedValue(JSON.stringify({ reply: 'Here.', menu_drink_id: drink.id, drink: null }))
 
     await runMakeJob('job1', 'something bitter')
 
@@ -78,11 +78,11 @@ describe('runMakeJob', () => {
     const bottles = [makeBottle()]
     const menu = makeMenu()
     const onMenuDrink = makeDrink()
-    const savedDrink = makeDrink({ id: 'drink2', menu_id: null, name: draft.name, source_prompt: 'something new' })
+    const savedDrink = makeDrink({ id: '22222222-2222-4222-8222-222222222222', menu_id: null, name: draft.name, source_prompt: 'something new' })
     mockData.getBottles.mockResolvedValue(bottles)
     mockData.getActiveMenu.mockResolvedValue({ menu, drinks: [onMenuDrink] })
     mockData.saveOffMenuDrink.mockResolvedValue(savedDrink)
-    mockRunClaude.mockResolvedValue({ text: JSON.stringify({ reply: 'Fresh one.', menu_drink_id: null, drink: draft }), timings: {} })
+    mockRunClaude.mockResolvedValue(JSON.stringify({ reply: 'Fresh one.', menu_drink_id: null, drink: draft }))
 
     await runMakeJob('job2', 'something new')
 

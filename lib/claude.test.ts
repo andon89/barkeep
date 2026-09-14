@@ -18,7 +18,7 @@ describe('runClaude', () => {
     const res = await runClaude('hello', {
       createSandbox, getSnapshotId: async () => 'snap-0', saveSnapshotId: vi.fn(), oauthToken: 'oauth-x',
     })
-    expect(res.text).toBe('{"ok":true}')
+    expect(res).toBe('{"ok":true}')
     expect(createSandbox).toHaveBeenCalledWith(expect.objectContaining({ source: { type: 'snapshot', snapshotId: 'snap-0' } }))
     expect(sb.calls).toEqual([['claude', '-p', 'hello', '--dangerously-skip-permissions']])
   })
@@ -35,7 +35,7 @@ describe('runClaude', () => {
     const sb = fakeSandbox('text')
     const createSandbox = vi.fn().mockRejectedValueOnce(new Error('gone')).mockResolvedValueOnce(sb)
     const res = await runClaude('p', { createSandbox, getSnapshotId: async () => 'stale', saveSnapshotId: vi.fn(), oauthToken: 't' })
-    expect(res.text).toBe('text')
+    expect(res).toBe('text')
     expect(createSandbox).toHaveBeenCalledTimes(2)
   })
 
