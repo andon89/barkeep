@@ -5,12 +5,9 @@ import { useBarState } from './BarState'
 import { useJob } from './useJob'
 import { DrinkCard } from './DrinkCard'
 import { DrinkDialog } from './DrinkDialog'
+import { useDocked } from './useDocked'
 import type { Drink } from '@/lib/types'
 import { GUEST_TEXT_MAX } from '@/lib/constants'
-
-// Below this width the counter is docked to the bottom of the screen, so a drink served
-// inline would land behind it; it comes up as a sheet instead. Keep in step with globals.css.
-const DOCKED_QUERY = '(max-width: 900px)'
 
 type Served = { drink: Drink; onMenu: boolean }
 const noteFor = (s: Served) => (s.onMenu ? "From tonight's menu." : 'Off the menu tonight.')
@@ -20,7 +17,9 @@ export function Counter() {
   const { start, submitting } = useJob()
   const [ask, setAsk] = useState('')
   const [served, setServed] = useState<Served | null>(null)
-  const [sheet, setSheet] = useState<Served | null>(null)
+  // Docked, the counter sits over the page, so a drink served inline would land behind it;
+  // it comes up as a sheet instead.
+  const docked = useDocked()
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -31,9 +30,7 @@ export function Counter() {
     const r = result as { reply: string; drink: Drink; onMenu: boolean }
     setRobot('presenting')
     setSpeech(r.reply)
-    const s = { drink: r.drink, onMenu: r.onMenu }
-    if (window.matchMedia(DOCKED_QUERY).matches) setSheet(s)
-    else setServed(s)
+    setServed({ drink: r.drink, onMenu: r.onMenu })
     setAsk('')
   }
 
@@ -65,12 +62,12 @@ export function Counter() {
         />
         <button className="brass-button" type="submit" disabled={busy || !ask.trim()}>{submitting ? 'Mixing' : 'Pour'}</button>
       </form>
-      {served && (
+      {served && !docked && (
         <div className="counter-result">
           <DrinkCard drink={served.drink} note={noteFor(served)} />
         </div>
       )}
-      <DrinkDialog drink={sheet?.drink ?? null} note={sheet ? noteFor(sheet) : undefined} onClose={() => setSheet(null)} />
+      <DrinkDialog drink={served && docked ? served.drink : null} note={served ? noteFor(served) : undefined} onClose={() => setServed(null)} />
     </section>
   )
 }

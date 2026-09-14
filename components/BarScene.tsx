@@ -23,8 +23,8 @@ export function BarScene({ bottles, menu, drinks, authed }: { bottles: Bottle[];
           </div>
         </div>
         <div className="counter-dock" data-guest={!authed || undefined}>
-          <div className="bar-top" />
           <Counter />
+          <div className="bar-top" />
         </div>
       </main>
       {authed && <ManageBottlesDrawer bottles={bottles} open={manageOpen} onClose={() => setManageOpen(false)} />}

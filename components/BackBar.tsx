@@ -28,6 +28,10 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const groups = useMemo(() => groupByCategory(optimistic), [optimistic])
+  const shelves = useMemo(
+    () => SHELVES.map((cats) => cats.map((cat) => ({ cat, count: groups[cat].length, rows: splitShelf(groups[cat], MAX_PER_ROW) }))),
+    [groups],
+  )
 
   useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
 
@@ -54,40 +58,37 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
 
   return (
     <div className="backbar">
-      {SHELVES.map((cats) => (
-        <div className="shelf" key={cats.join('|')}>
-          {cats.map((cat) => {
-            const rows = splitShelf(groups[cat], MAX_PER_ROW)
-            return (
-              <div className="shelf-cat" key={cat} style={{ '--n': Math.max(1, groups[cat].length) } as React.CSSProperties}>
-                <div className="shelf-cat-rows">
-                  {rows.map((row, i) => (
-                    <div className="shelf-unit" key={i} style={{ '--n': Math.max(1, row.length) } as React.CSSProperties}>
-                      <div className="shelf-bottles">
-                        {row.map((b) => (
-                          <button
-                            key={b.id}
-                            type="button"
-                            className="bottle-btn"
-                            data-out={!b.in_stock}
-                            aria-pressed={b.in_stock}
-                            aria-label={`${b.name}, ${b.in_stock ? 'in stock' : 'out of stock'}`}
-                            onClick={() => tap(b)}
-                            aria-disabled={!authed}
-                          >
-                            <Bottle style={b.style} height={116} />
-                            <span className="bottle-tag">{b.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <div className="shelf-board" />
+      {shelves.map((cats) => (
+        <div className="shelf" key={cats.map((c) => c.cat).join('|')}>
+          {cats.map(({ cat, count, rows }) => (
+            <div className="shelf-cat" key={cat} style={{ '--n': Math.max(1, count) } as React.CSSProperties}>
+              <div className="shelf-cat-rows">
+                {rows.map((row, i) => (
+                  <div className="shelf-unit" key={i} style={{ '--n': Math.max(1, row.length) } as React.CSSProperties}>
+                    <div className="shelf-bottles">
+                      {row.map((b) => (
+                        <button
+                          key={b.id}
+                          type="button"
+                          className="bottle-btn"
+                          data-out={!b.in_stock}
+                          aria-pressed={b.in_stock}
+                          aria-label={`${b.name}, ${b.in_stock ? 'in stock' : 'out of stock'}`}
+                          onClick={() => tap(b)}
+                          aria-disabled={!authed}
+                        >
+                          <Bottle style={b.style} height={116} />
+                          <span className="bottle-tag">{b.name}</span>
+                        </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <span className="placard">{cat}</span>
+                    <div className="shelf-board" />
+                  </div>
+                ))}
               </div>
-            )
-          })}
+              <span className="placard">{cat}</span>
+            </div>
+          ))}
         </div>
       ))}
       {error && <p role="alert" className="shelf-error">{error}</p>}
