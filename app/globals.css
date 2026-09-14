@@ -30,8 +30,9 @@ html {
 }
 /* Every control: no tap-to-zoom delay, no grey tap flash. */
 :where(button, a, summary) { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-/* A native dialog is modal; the page behind it should not scroll under a thumb. */
-body:has(dialog[open]) { overflow: hidden; }
+/* A native dialog is modal; the page behind it should not scroll under a thumb. On html, not
+   body: with overflow-x set on html, body's overflow no longer reaches the viewport. */
+html:has(dialog[open]) { overflow: hidden; }
 
 body {
   background-color: var(--color-wall);

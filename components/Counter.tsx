@@ -67,7 +67,8 @@ export function Counter() {
           <DrinkCard drink={served.drink} note={noteFor(served)} />
         </div>
       )}
-      <DrinkDialog drink={served && docked ? served.drink : null} note={served ? noteFor(served) : undefined} onClose={() => setServed(null)} />
+      {/* Undocking closes the sheet too; only a close while docked is the guest dismissing the drink. */}
+      <DrinkDialog drink={served && docked ? served.drink : null} note={served ? noteFor(served) : undefined} onClose={() => { if (docked) setServed(null) }} />
     </section>
   )
 }

@@ -52,7 +52,10 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
     startTransition(async () => {
       setOptimistic({ id: b.id, in_stock: next })
       const { error } = await toggleBottleAction(b.id, next)
-      if (error) setError(error)
+      if (error) {
+        setError(error)
+        announce(`${b.name} stays ${b.in_stock ? 'on the shelf' : 'out'}`)
+      }
     })
   }
 
