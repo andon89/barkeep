@@ -1,8 +1,10 @@
-export default function Home() {
-  return (
-    <main className="p-8">
-      <h1 className="sign text-5xl">Barkeep</h1>
-      <p className="text-cream-dim mt-2">The bar is being built.</p>
-    </main>
-  )
+import { getBottles, getActiveMenu } from '@/lib/data'
+import { isAuthed } from '@/lib/session'
+import { BarScene } from '@/components/BarScene'
+
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const [bottles, active, authed] = await Promise.all([getBottles(), getActiveMenu(), isAuthed()])
+  return <BarScene bottles={bottles} menu={active?.menu ?? null} drinks={active?.drinks ?? []} authed={authed} />
 }

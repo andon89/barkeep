@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAuthTokenEdge } from '@/lib/auth-edge'
+import { AUTH_COOKIE } from '@/lib/constants'
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   if (pathname.startsWith('/_next') || pathname === '/api/auth') return NextResponse.next()
 
   const expectedToken = await createAuthTokenEdge()
-  const isAuthed = request.cookies.get('barkeep_auth')?.value === expectedToken
+  const isAuthed = request.cookies.get(AUTH_COOKIE)?.value === expectedToken
 
   if (pathname.startsWith('/api/')) {
-    return isAuthed ? NextResponse.next() : NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return isAuthed ? NextResponse.next() : NextResponse.json({ error: 'Give the doorman the word first.' }, { status: 401 })
   }
-  if (pathname === '/login') {
-    return isAuthed ? NextResponse.redirect(new URL('/', request.url)) : NextResponse.next()
-  }
-  return isAuthed ? NextResponse.next() : NextResponse.redirect(new URL('/login', request.url))
+  if (pathname === '/login' && isAuthed) return NextResponse.redirect(new URL('/', request.url))
+  return NextResponse.next()
 }
 
 export const config = {

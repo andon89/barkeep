@@ -76,3 +76,187 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- scene ---- */
+.scene {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 26px),
+    linear-gradient(180deg, var(--color-wall-deep), var(--color-wall) 30%);
+}
+.scene-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem 0.5rem;
+}
+
+/* ---- back bar ---- */
+.backbar { padding: 0.5rem 1.25rem 0; }
+.shelf { position: relative; margin-top: 0.75rem; }
+.shelf-row {
+  display: flex; align-items: flex-end; gap: 1.75rem;
+  overflow-x: auto; padding: 1.5rem 0.75rem 0;
+  scrollbar-width: thin;
+  position: relative;
+}
+.shelf-row::before {
+  content: ''; position: absolute; inset: 0 0 -4px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(242,178,90,0.26), transparent 65%);
+  animation: warmup 1.4s ease-out both;
+  pointer-events: none;
+}
+@keyframes warmup { from { opacity: 0 } to { opacity: 1 } }
+.shelf-group { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
+.shelf-bottles { display: flex; align-items: flex-end; gap: 0.15rem; }
+.placard {
+  margin-top: 0.35rem;
+  font-family: var(--font-display); font-style: italic; font-size: 0.8rem;
+  color: var(--color-wood-deep);
+  background: linear-gradient(180deg, #d9b45c, #a8853a);
+  padding: 0.05rem 0.5rem; border-radius: 1px;
+  box-shadow: 0 1px 0 #6f5722;
+}
+.shelf-board {
+  height: 14px; margin-top: -2px;
+  background: linear-gradient(180deg, var(--color-wood-light), var(--color-wood) 40%, var(--color-wood-deep));
+  border-top: 1px solid var(--color-brass-dim);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.45);
+}
+.bottle-btn {
+  position: relative; background: none; border: 0; padding: 0 0.1rem; cursor: pointer;
+  border-radius: 4px;
+}
+.bottle-btn svg { display: block; transition: transform 150ms ease, opacity 200ms ease, filter 200ms ease; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.45)); }
+.bottle-btn:hover svg, .bottle-btn:focus-visible svg { transform: translateY(-4px); }
+.bottle-btn:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 2px; }
+.bottle-btn[aria-disabled="true"] { cursor: default; } /* guests can look, not toggle */
+.bottle-btn[data-out="true"] svg { opacity: 0.28; filter: grayscale(0.85); }
+.bottle-tag {
+  position: absolute; left: 50%; bottom: -1.3rem; transform: translateX(-50%);
+  white-space: nowrap; font-size: 0.75rem; color: var(--color-wood-deep);
+  background: var(--color-cream); padding: 0.05rem 0.4rem; border-radius: 2px;
+  opacity: 0; pointer-events: none; transition: opacity 120ms; z-index: 2;
+}
+.bottle-btn:hover .bottle-tag, .bottle-btn:focus-visible .bottle-tag { opacity: 1; }
+
+/* ---- counter ---- */
+.counter-area { flex: 1; padding: 1rem 1.25rem 0; }
+.bar-top {
+  height: 28px;
+  background: linear-gradient(180deg, var(--color-wood-light), var(--color-wood) 45%, var(--color-wood-deep));
+  border-top: 3px solid var(--color-brass);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
+}
+
+/* ---- drawer ---- */
+.drawer {
+  margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(34rem, 100%);
+  background: var(--color-wood-deep); color: var(--color-cream); border: 0;
+  border-left: 3px solid var(--color-brass); padding: 0;
+}
+.drawer::backdrop { background: rgba(0,0,0,0.55); }
+.drawer-inner { padding: 1.25rem; overflow-y: auto; height: 100%; }
+.drawer-form { background: rgba(0,0,0,0.25); padding: 1rem; border-radius: 4px; }
+.drawer-field { display: grid; gap: 0.25rem; font-size: 0.85rem; color: var(--color-cream-dim); }
+.drawer-field input[type="color"] { width: 100%; height: 2.4rem; border: 0; background: none; cursor: pointer; }
+
+/* ---- robot ---- */
+.robot-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.speech {
+  position: relative; max-width: 24rem;
+  background: var(--color-cream); color: var(--color-wood-deep);
+  font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.15rem; line-height: 1.35;
+  padding: 0.7rem 1rem; border-radius: 12px 12px 12px 2px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+}
+.speech::after {
+  content: ''; position: absolute; left: 1.2rem; bottom: -8px;
+  border: 8px solid transparent; border-top-color: var(--color-cream); border-bottom: 0;
+}
+.robot { display: block; filter: drop-shadow(0 10px 12px rgba(0,0,0,0.5)); overflow: visible; }
+.robot .head { transform-origin: 100px 76px; animation: head-bob 4s ease-in-out infinite; }
+@keyframes head-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(2px) } }
+.robot .eye { transform-box: fill-box; transform-origin: center; animation: blink 6s infinite; }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1) } 95% { transform: scaleY(0.1) } }
+.robot .arm-work { transform-origin: 157px 96px; transition: transform 0.45s ease; }
+.robot .shaker { transition: opacity 0.25s; }
+.robot .glass { opacity: 0; transition: opacity 0.3s 0.25s; }
+.robot[data-state="mixing"] .arm-work { animation: shake 0.28s ease-in-out infinite alternate; }
+@keyframes shake { from { transform: rotate(-22deg) } to { transform: rotate(16deg) } }
+.robot[data-state="mixing"] .antenna-tip { animation: pulse 0.6s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 0.5 } to { opacity: 1 } }
+.robot[data-state="presenting"] .arm-work { transform: rotate(-75deg); }
+.robot[data-state="presenting"] .shaker { opacity: 0; }
+.robot[data-state="presenting"] .glass { opacity: 1; }
+
+.counter-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: end; max-width: 72rem; margin: 0 auto; }
+@media (min-width: 900px) { .counter-grid { grid-template-columns: 1fr 1fr; } }
+
+.shelf-error { color: var(--color-amber); padding: 0.25rem 1.25rem; }
+
+/* ---- chalkboard + cards ---- */
+.chalkboard {
+  background: var(--color-board); color: var(--color-chalk);
+  border: 10px solid var(--color-wood); outline: 2px solid var(--color-wood-deep);
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.45), 0 12px 24px rgba(0,0,0,0.45);
+  padding: 1.25rem 1.5rem; min-height: 16rem;
+}
+.chalk-title { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; line-height: 1.1; }
+.chalk-list { margin-top: 0.75rem; display: grid; gap: 0.25rem; }
+.chalk-item {
+  background: none; border: 0; padding: 0.15rem 0; cursor: pointer; text-align: left;
+  font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.35rem; color: var(--color-chalk);
+  text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color 120ms;
+}
+.chalk-item:hover, .chalk-item:focus-visible { text-decoration-color: var(--color-chalk); outline: none; }
+.chalk-empty { font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.3rem; opacity: 0.8; }
+.chalk-new { display: inline-block; margin-top: 1rem; background: none; border: 1px dashed rgba(233,228,214,0.5); color: var(--color-chalk); padding: 0.4rem 0.8rem; cursor: pointer; font-family: var(--font-body); }
+.chalk-new:hover { border-style: solid; }
+.chalk-form { margin-top: 1rem; }
+
+.drink-card {
+  background: var(--color-cream); color: var(--color-wood-deep);
+  padding: 1.25rem 1.5rem; border-radius: 2px; max-width: 30rem;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+}
+.drink-dialog { background: transparent; border: 0; padding: 1rem; max-width: 34rem; }
+.drink-dialog::backdrop { background: rgba(0,0,0,0.6); }
+
+/* ---- counter ---- */
+.counter { max-width: 72rem; margin: 1rem auto 0; padding: 0 1.25rem 1rem; }
+.counter-form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.counter-label { font-family: var(--font-display); font-style: italic; font-size: 1.4rem; color: var(--color-cream); }
+.counter-result { margin-top: 1rem; animation: slide-up 300ms ease-out both; }
+@keyframes slide-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+/* ---- realism pass: bottles fill the bar ---- */
+.shelf-row { justify-content: space-between; padding-left: 1.5rem; padding-right: 1.5rem; }
+.shelf-group { flex: 1 1 0; min-width: 0; }
+.shelf-bottles { width: 100%; justify-content: space-evenly; gap: 0; }
+.bottle-btn { width: clamp(46px, 4.6vw, 78px); }
+.bottle-btn svg { width: 100%; height: auto; }
+.bottle-btn::after {
+  content: ''; position: absolute; left: 12%; right: 12%; bottom: -3px; height: 9px; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
+  pointer-events: none;
+}
+.bottle-btn[data-out="true"]::after { opacity: 0.35; }
+@media (max-width: 900px) {
+  .shelf-group { flex: 0 0 auto; }
+  .shelf-bottles { width: auto; gap: 0.15rem; }
+  .bottle-btn { width: 46px; }
+}
+
+/* dialogs: Tailwind preflight zeroes dialog margins; center them again */
+.drink-dialog { margin: auto; }
+
+/* ---- history ---- */
+.history { min-height: 100dvh; background: linear-gradient(180deg, var(--color-wall-deep), var(--color-wall) 30%); }
+.history-body { max-width: 44rem; margin: 0 auto; padding: 1rem 1.25rem 4rem; }
+.history-menu { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-brass-dim); }
+.history-drink summary { cursor: pointer; font-family: var(--font-display); font-style: italic; font-size: 1.2rem; }
+
+.drink-dialog-inner { background: var(--color-cream); border-radius: 2px; box-shadow: 0 10px 22px rgba(0,0,0,0.45); }
+.drink-dialog-inner .drink-card { box-shadow: none; }
+.drink-dialog-inner > button { display: block; margin: 0 1.5rem 1rem auto; color: var(--color-wood-deep); }
