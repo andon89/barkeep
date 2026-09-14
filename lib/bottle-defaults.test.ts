@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { defaultStyle, groupByCategory, labelTextFor } from './bottle-defaults'
+import { defaultStyle, groupByCategory, labelTextFor, splitShelf } from './bottle-defaults'
 import type { Category } from './types'
 
 describe('labelTextFor', () => {
@@ -28,5 +28,17 @@ describe('groupByCategory', () => {
     expect(groups['Aperitifs & Vermouth'].map((x) => x.name)).toEqual(['Campari', 'Cocchi'])
     expect(groups['Whiskey'].map((x) => x.name)).toEqual(['Rye'])
     expect(groups['Rum']).toEqual([])
+  })
+})
+
+describe('splitShelf', () => {
+  it('leaves a category that fits alone', () => {
+    expect(splitShelf([1, 2, 3, 4, 5, 6, 7], 7)).toEqual([[1, 2, 3, 4, 5, 6, 7]])
+    expect(splitShelf([], 7)).toEqual([[]])
+  })
+  it('splits an overfull category into balanced rows, larger rows first', () => {
+    expect(splitShelf([1, 2, 3, 4, 5, 6, 7, 8, 9], 7)).toEqual([[1, 2, 3, 4, 5], [6, 7, 8, 9]])
+    expect(splitShelf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 7)).toEqual([[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]])
+    expect(splitShelf(Array.from({ length: 16 }, (_, i) => i), 7)).toEqual([[0, 1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15]])
   })
 })
