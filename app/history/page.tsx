@@ -1,4 +1,5 @@
 import { getHistory } from '@/lib/data'
+import { isAuthed } from '@/lib/session'
 import { DrinkCard } from '@/components/DrinkCard'
 import { SceneHeader } from '@/components/SceneHeader'
 
@@ -7,10 +8,10 @@ export const dynamic = 'force-dynamic'
 const fmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' })
 
 export default async function HistoryPage() {
-  const { menus, offMenu } = await getHistory()
+  const [{ menus, offMenu }, authed] = await Promise.all([getHistory(), isAuthed()])
   return (
     <main className="history">
-      <SceneHeader backLink />
+      <SceneHeader authed={authed} backLink />
 
       <div className="history-body">
         <h1 className="font-display text-3xl text-brass">Past menus</h1>

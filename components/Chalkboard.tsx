@@ -1,5 +1,6 @@
 'use client'
 import { useState, FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useBarState } from './BarState'
 import { useJob } from './useJob'
@@ -8,7 +9,7 @@ import type { Drink, Menu } from '@/lib/types'
 
 export function Chalkboard({ menu, drinks }: { menu: Menu | null; drinks: Drink[] }) {
   const router = useRouter()
-  const { setRobot, setSpeech, busy, setBusy } = useBarState()
+  const { authed, setRobot, setSpeech, busy, setBusy } = useBarState()
   const { start, busy: submitting } = useJob()
   const [writing, setWriting] = useState(false)
   const [theme, setTheme] = useState('')
@@ -55,7 +56,9 @@ export function Chalkboard({ menu, drinks }: { menu: Menu | null; drinks: Drink[
         <p className="chalk-empty">Nothing on the board yet.</p>
       )}
 
-      {writing ? (
+      {!authed ? (
+        <Link href="/login" className="chalk-new">Give the doorman the word to write a menu</Link>
+      ) : writing ? (
         <form onSubmit={submit} className="chalk-form">
           <input className="napkin-input w-full" placeholder="A theme, if you have one" value={theme} onChange={(e) => setTheme(e.target.value)} aria-label="Menu theme" maxLength={300} disabled={busy} />
           <div className="flex gap-3 items-center mt-2">

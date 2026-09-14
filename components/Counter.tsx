@@ -1,12 +1,13 @@
 'use client'
 import { useState, FormEvent } from 'react'
+import Link from 'next/link'
 import { useBarState } from './BarState'
 import { useJob } from './useJob'
 import { DrinkCard } from './DrinkCard'
 import type { Drink } from '@/lib/types'
 
 export function Counter() {
-  const { setRobot, setSpeech, busy, setBusy } = useBarState()
+  const { authed, setRobot, setSpeech, busy, setBusy } = useBarState()
   const { start, busy: submitting } = useJob()
   const [ask, setAsk] = useState('')
   const [served, setServed] = useState<{ drink: Drink; onMenu: boolean } | null>(null)
@@ -33,6 +34,16 @@ export function Counter() {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (!authed) {
+    return (
+      <section className="counter" aria-label="Order a drink">
+        <p className="counter-label">
+          The counter is for regulars. <Link href="/login" className="quiet-link not-italic text-base">Give the doorman the word.</Link>
+        </p>
+      </section>
+    )
   }
 
   return (

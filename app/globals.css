@@ -210,7 +210,7 @@ body {
 }
 .chalk-item:hover, .chalk-item:focus-visible { text-decoration-color: var(--color-chalk); outline: none; }
 .chalk-empty { font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.3rem; opacity: 0.8; }
-.chalk-new { margin-top: 1rem; background: none; border: 1px dashed rgba(233,228,214,0.5); color: var(--color-chalk); padding: 0.4rem 0.8rem; cursor: pointer; font-family: var(--font-body); }
+.chalk-new { display: inline-block; margin-top: 1rem; background: none; border: 1px dashed rgba(233,228,214,0.5); color: var(--color-chalk); padding: 0.4rem 0.8rem; cursor: pointer; font-family: var(--font-body); }
 .chalk-new:hover { border-style: solid; }
 .chalk-form { margin-top: 1rem; }
 

@@ -1,16 +1,19 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { addBottle, removeBottle, setBottleStock } from '@/lib/data'
+import { requireAuth } from '@/lib/session'
 import { CATEGORIES, SHAPE_NAMES, type BottleStyle, type Category } from '@/lib/types'
 
 const HEX = /^#[0-9a-f]{6}$/i
 
 export async function toggleBottleAction(id: string, inStock: boolean) {
+  await requireAuth()
   await setBottleStock(id, inStock)
   revalidatePath('/')
 }
 
 export async function addBottleAction(input: { name: string; category: Category; style: BottleStyle }) {
+  await requireAuth()
   const name = input.name.trim().slice(0, 80)
   if (!name) throw new Error('Name is required')
   if (!CATEGORIES.includes(input.category)) throw new Error('Unknown category')
@@ -24,6 +27,7 @@ export async function addBottleAction(input: { name: string; category: Category;
 }
 
 export async function removeBottleAction(id: string) {
+  await requireAuth()
   await removeBottle(id)
   revalidatePath('/')
 }

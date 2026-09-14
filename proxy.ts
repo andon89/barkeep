@@ -9,12 +9,10 @@ export async function proxy(request: NextRequest) {
   const isAuthed = request.cookies.get('barkeep_auth')?.value === expectedToken
 
   if (pathname.startsWith('/api/')) {
-    return isAuthed ? NextResponse.next() : NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return isAuthed ? NextResponse.next() : NextResponse.json({ error: 'Give the doorman the word first.' }, { status: 401 })
   }
-  if (pathname === '/login') {
-    return isAuthed ? NextResponse.redirect(new URL('/', request.url)) : NextResponse.next()
-  }
-  return isAuthed ? NextResponse.next() : NextResponse.redirect(new URL('/login', request.url))
+  if (pathname === '/login' && isAuthed) return NextResponse.redirect(new URL('/', request.url))
+  return NextResponse.next()
 }
 
 export const config = {

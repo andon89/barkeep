@@ -9,12 +9,12 @@ import { Chalkboard } from './Chalkboard'
 import { Counter } from './Counter'
 import type { Bottle, Drink, Menu } from '@/lib/types'
 
-export function BarScene({ bottles, menu, drinks }: { bottles: Bottle[]; menu: Menu | null; drinks: Drink[] }) {
+export function BarScene({ bottles, menu, drinks, authed }: { bottles: Bottle[]; menu: Menu | null; drinks: Drink[]; authed: boolean }) {
   const [manageOpen, setManageOpen] = useState(false)
   return (
-    <BarStateProvider>
+    <BarStateProvider authed={authed}>
       <main className="scene">
-        <SceneHeader onManage={() => setManageOpen(true)} />
+        <SceneHeader authed={authed} onManage={authed ? () => setManageOpen(true) : undefined} />
         <BackBar bottles={bottles} />
         <div className="counter-area">
           <div className="counter-grid">
@@ -25,7 +25,7 @@ export function BarScene({ bottles, menu, drinks }: { bottles: Bottle[]; menu: M
         <Counter />
         <div className="bar-top" />
       </main>
-      <ManageBottlesDrawer bottles={bottles} open={manageOpen} onClose={() => setManageOpen(false)} />
+      {authed && <ManageBottlesDrawer bottles={bottles} open={manageOpen} onClose={() => setManageOpen(false)} />}
     </BarStateProvider>
   )
 }
