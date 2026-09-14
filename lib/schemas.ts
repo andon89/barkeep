@@ -14,8 +14,9 @@ export const DrinkSchema = z.object({
 export const MenuResponseSchema = z.object({ title: z.string().min(1), intro: z.string(), drinks: z.array(DrinkSchema).min(1) })
 export const MakeMeResponseSchema = z.object({
   reply: z.string(),
-  menu_drink_id: z.uuid().nullable(),
-  drink: DrinkSchema.nullable(),
+  // nullish: the prompt asks for null, but an omitted key means the same thing.
+  menu_drink_id: z.uuid().nullish(),
+  drink: DrinkSchema.nullish(),
 })
 
 export type DrinkDraft = z.infer<typeof DrinkSchema>

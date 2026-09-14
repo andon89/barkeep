@@ -130,6 +130,7 @@ body {
 .bottle-btn svg { display: block; transition: transform 150ms ease, opacity 200ms ease, filter 200ms ease; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.45)); }
 .bottle-btn:hover svg, .bottle-btn:focus-visible svg { transform: translateY(-4px); }
 .bottle-btn:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 2px; }
+.bottle-btn[aria-disabled="true"] { cursor: default; } /* guests can look, not toggle */
 .bottle-btn[data-out="true"] svg { opacity: 0.28; filter: grayscale(0.85); }
 .bottle-tag {
   position: absolute; left: 50%; bottom: -1.3rem; transform: translateX(-50%);

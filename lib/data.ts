@@ -36,17 +36,17 @@ export async function getActiveMenu(): Promise<{ menu: Menu; drinks: Drink[] } |
   return { menu: menu as Menu, drinks: (drinks ?? []) as Drink[] }
 }
 
+// One transaction on the database side (barkeep_create_menu in sql/schema.sql), so the swap
+// to the new menu is all-or-nothing.
 export async function createMenu(input: { title: string; intro: string; prompt: string | null; drinks: DrinkDraft[] }): Promise<{ menu: Menu; drinks: Drink[] }> {
-  const { data: menu, error: e1 } = await supabase.from('barkeep_menus').insert({ title: input.title, intro: input.intro, prompt: input.prompt, is_active: false }).select().single()
-  if (e1) throw e1
-  const rows = input.drinks.map((d, i) => ({ ...d, menu_id: menu.id, sort_order: i }))
-  const { data: drinks, error: e2 } = await supabase.from('barkeep_drinks').insert(rows).select().order('sort_order')
-  if (e2) throw e2
-  const { error: e3 } = await supabase.from('barkeep_menus').update({ is_active: false }).eq('is_active', true)
-  if (e3) throw e3
-  const { error: e4 } = await supabase.from('barkeep_menus').update({ is_active: true }).eq('id', menu.id)
-  if (e4) throw e4
-  return { menu: { ...(menu as Menu), is_active: true }, drinks: drinks as Drink[] }
+  const { data, error } = await supabase.rpc('barkeep_create_menu', {
+    p_title: input.title,
+    p_intro: input.intro,
+    p_prompt: input.prompt,
+    p_drinks: input.drinks,
+  })
+  if (error) throw error
+  return data as { menu: Menu; drinks: Drink[] }
 }
 
 export async function createJob(kind: JobKind, input: Record<string, unknown>): Promise<Job> {

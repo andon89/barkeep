@@ -29,25 +29,18 @@ export function ManageBottlesDrawer({ bottles, open, onClose }: { bottles: Bottl
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      try {
-        await addBottleAction({ name, category, style: preview })
-        setName(''); setLabelText('')
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not add that bottle.')
-      }
+      const { error } = await addBottleAction({ name, category, style: preview })
+      if (error) return setError(error)
+      setName(''); setLabelText('')
     })
   }
 
   function remove(id: string) {
     if (confirmId !== id) { setConfirmId(id); return }
     startTransition(async () => {
-      try {
-        await removeBottleAction(id)
-        setConfirmId(null)
-      } catch {
-        setError("Couldn't remove that bottle. Try again.")
-        setConfirmId(null)
-      }
+      const { error } = await removeBottleAction(id)
+      setError(error)
+      setConfirmId(null)
     })
   }
 

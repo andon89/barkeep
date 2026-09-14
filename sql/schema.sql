@@ -65,3 +65,31 @@ drop policy if exists "service role only" on barkeep_jobs;
 create policy "service role only" on barkeep_jobs for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 drop policy if exists "service role only" on barkeep_meta;
 create policy "service role only" on barkeep_meta for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+
+-- Writes a menu and its drinks and makes it the active one, all in one transaction, so a
+-- failure part-way never leaves the board blank or an orphaned menu in history. Two menu
+-- jobs racing each other: the second blocks on the first's row lock, then its insert trips
+-- barkeep_menus_one_active and the whole call rolls back cleanly.
+create or replace function barkeep_create_menu(p_title text, p_intro text, p_prompt text, p_drinks jsonb)
+returns jsonb
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_menu barkeep_menus;
+  v_drinks jsonb;
+begin
+  update barkeep_menus set is_active = false where is_active;
+  insert into barkeep_menus (title, intro, prompt, is_active)
+    values (p_title, p_intro, p_prompt, true)
+    returning * into v_menu;
+  insert into barkeep_drinks (menu_id, name, description, ingredients, instructions, glassware, garnish, sort_order)
+    select v_menu.id, d->>'name', d->>'description', coalesce(d->'ingredients', '[]'::jsonb), d->>'instructions', d->>'glassware', d->>'garnish', ord - 1
+    from jsonb_array_elements(p_drinks) with ordinality as t(d, ord);
+  select coalesce(jsonb_agg(to_jsonb(r) order by r.sort_order), '[]'::jsonb) into v_drinks
+    from barkeep_drinks r where r.menu_id = v_menu.id;
+  return jsonb_build_object('menu', to_jsonb(v_menu), 'drinks', v_drinks);
+end
+$$;
+-- Same rule as the tables: only the service role may call it.
+revoke execute on function barkeep_create_menu(text, text, text, jsonb) from public, anon, authenticated;

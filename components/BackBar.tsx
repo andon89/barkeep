@@ -2,6 +2,7 @@
 import { useMemo, useOptimistic, useState, useTransition } from 'react'
 import { Bottle } from './Bottle'
 import { toggleBottleAction } from '@/app/actions'
+import { useBarState } from './BarState'
 import { groupByCategory } from '@/lib/bottle-defaults'
 import type { Bottle as BottleRow, Category } from '@/lib/types'
 
@@ -13,6 +14,7 @@ const SHELVES: Category[][] = [
 ]
 
 export function BackBar({ bottles }: { bottles: BottleRow[] }) {
+  const { authed } = useBarState()
   const [optimistic, setOptimistic] = useOptimistic(bottles, (state, next: { id: string; in_stock: boolean }) =>
     state.map((b) => (b.id === next.id ? { ...b, in_stock: next.in_stock } : b)),
   )
@@ -24,11 +26,8 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
     setError(null)
     startTransition(async () => {
       setOptimistic({ id: b.id, in_stock: !b.in_stock })
-      try {
-        await toggleBottleAction(b.id, !b.in_stock)
-      } catch {
-        setError("Couldn't update the shelf. Try again.")
-      }
+      const { error } = await toggleBottleAction(b.id, !b.in_stock)
+      if (error) setError(error)
     })
   }
 
@@ -48,7 +47,8 @@ export function BackBar({ bottles }: { bottles: BottleRow[] }) {
                       data-out={!b.in_stock}
                       aria-pressed={b.in_stock}
                       aria-label={`${b.name}, ${b.in_stock ? 'in stock' : 'out of stock'}`}
-                      onClick={() => toggle(b)}
+                      onClick={authed ? () => toggle(b) : undefined}
+                      aria-disabled={!authed}
                     >
                       <Bottle style={b.style} height={116} />
                       <span className="bottle-tag">{b.name}</span>
