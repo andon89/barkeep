@@ -25,3 +25,20 @@ export function groupByCategory(bottles: Bottle[]): Record<Category, Bottle[]> {
   for (const b of bottles) groups[b.category]?.push(b)
   return groups
 }
+
+// Splits a category into rows of at most `max` bottles, as evenly as possible with the
+// larger rows first. On a phone each row is its own full-width shelf; on a desktop the
+// rows sit side by side, so a split is invisible there.
+export function splitShelf<T>(items: T[], max: number): T[][] {
+  const rows = Math.max(1, Math.ceil(items.length / max))
+  const base = Math.floor(items.length / rows)
+  const extra = items.length % rows
+  const out: T[][] = []
+  let i = 0
+  for (let r = 0; r < rows; r++) {
+    const size = base + (r < extra ? 1 : 0)
+    out.push(items.slice(i, i + size))
+    i += size
+  }
+  return out
+}

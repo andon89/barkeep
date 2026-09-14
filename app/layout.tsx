@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Fraunces, Alegreya_Sans } from 'next/font/google'
 import './globals.css'
 
@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   description: 'A robot bartender for the home bar.',
   openGraph: { siteName: 'Barkeep', type: 'website' },
   twitter: { card: 'summary_large_image' },
+}
+
+// Paint under the notch and home indicator (the CSS pads with env(safe-area-inset-*)) and tint
+// the browser chrome to the wall so the bar fills the whole phone screen.
+export const viewport: Viewport = {
+  themeColor: '#121d1a',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

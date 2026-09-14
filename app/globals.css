@@ -18,6 +18,22 @@
   --font-body: var(--font-alegreya), system-ui, sans-serif;
 }
 
+:root {
+  --tap: 2.75rem; /* smallest comfortable tap target */
+  --docked: 0;    /* 1 when the counter is docked to the bottom of a phone screen, see the phone block */
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+/* Every control: no tap-to-zoom delay, no grey tap flash. */
+:where(button, a, summary) { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+/* A native dialog is modal; the page behind it should not scroll under a thumb. On html, not
+   body: with overflow-x set on html, body's overflow no longer reaches the viewport. */
+html:has(dialog[open]) { overflow: hidden; }
+
 body {
   background-color: var(--color-wall);
   color: var(--color-cream);
@@ -47,6 +63,7 @@ body {
 .napkin-input:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 2px; }
 
 .brass-button {
+  min-height: var(--tap);
   background: linear-gradient(180deg, #d9b45c, #a8853a);
   color: var(--color-wood-deep);
   font-family: var(--font-body);
@@ -68,6 +85,8 @@ body {
   text-decoration-color: var(--color-brass-dim);
 }
 .quiet-link:hover { color: var(--color-cream); }
+/* A full-height hit area without moving the text. */
+.quiet-link { display: inline-block; padding: 0.6rem 0.4rem; margin: -0.6rem -0.4rem; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -86,50 +105,66 @@ body {
     repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 26px),
     linear-gradient(180deg, var(--color-wall-deep), var(--color-wall) 30%);
 }
+.scene {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
 .scene-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 1.25rem 0.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 0.5rem;
 }
 
-/* ---- back bar ---- */
+/* ---- back bar ----
+   Each category is a column of one or more .shelf-unit rows (big categories split so a phone
+   can fit a row at tappable size). Every unit carries its own board; units and categories sit
+   flush so the boards read as one continuous shelf on a desktop, and wrap into full-width
+   shelves on a phone. Nothing scrolls sideways. */
 .backbar { padding: 0.5rem 1.25rem 0; }
-.shelf { position: relative; margin-top: 0.75rem; }
-.shelf-row {
-  display: flex; align-items: flex-end; gap: 1.75rem;
-  overflow-x: auto; padding: 1.5rem 0.75rem 0;
-  scrollbar-width: thin;
-  position: relative;
-}
-.shelf-row::before {
+.shelf { display: flex; flex-wrap: wrap; row-gap: 1.25rem; margin-top: 0.75rem; }
+.shelf-cat { display: flex; flex-direction: column; align-items: center; flex: var(--n) 1 0; min-width: 0; }
+.shelf-cat-rows { display: flex; flex-wrap: wrap; row-gap: 1.25rem; align-self: stretch; }
+.shelf-unit { display: flex; flex-direction: column; flex: var(--n) 1 0; min-width: 0; position: relative; }
+.shelf-unit::before {
   content: ''; position: absolute; inset: 0 0 -4px;
   background: radial-gradient(ellipse at 50% 100%, rgba(242,178,90,0.26), transparent 65%);
   animation: warmup 1.4s ease-out both;
   pointer-events: none;
 }
 @keyframes warmup { from { opacity: 0 } to { opacity: 1 } }
-.shelf-group { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
-.shelf-bottles { display: flex; align-items: flex-end; gap: 0.15rem; }
-.placard {
-  margin-top: 0.35rem;
-  font-family: var(--font-display); font-style: italic; font-size: 0.8rem;
-  color: var(--color-wood-deep);
-  background: linear-gradient(180deg, #d9b45c, #a8853a);
-  padding: 0.05rem 0.5rem; border-radius: 1px;
-  box-shadow: 0 1px 0 #6f5722;
-}
+.shelf-bottles { display: flex; align-items: flex-end; justify-content: space-evenly; padding: 1.5rem 0.5rem 0; position: relative; }
 .shelf-board {
-  height: 14px; margin-top: -2px;
+  height: 16px; margin-top: -2px; position: relative;
   background: linear-gradient(180deg, var(--color-wood-light), var(--color-wood) 40%, var(--color-wood-deep));
   border-top: 1px solid var(--color-brass-dim);
   box-shadow: 0 10px 18px rgba(0,0,0,0.45);
 }
+/* A brass nameplate screwed to the shelf's front edge. */
+.placard {
+  position: relative; z-index: 1; margin-top: -13px;
+  font-family: var(--font-display); font-style: italic; font-size: 0.8rem; line-height: 1.5;
+  color: var(--color-wood-deep);
+  background: linear-gradient(180deg, #d9b45c, #a8853a);
+  padding: 0.05rem 0.5rem; border-radius: 1px;
+  box-shadow: 0 1px 0 #6f5722, 0 3px 6px rgba(0,0,0,0.35);
+}
 .bottle-btn {
   position: relative; background: none; border: 0; padding: 0 0.1rem; cursor: pointer;
-  border-radius: 4px;
+  border-radius: 4px; width: clamp(46px, 4.6vw, 78px);
 }
-.bottle-btn svg { display: block; transition: transform 150ms ease, opacity 200ms ease, filter 200ms ease; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.45)); }
-.bottle-btn:hover svg, .bottle-btn:focus-visible svg { transform: translateY(-4px); }
+.bottle-btn svg {
+  display: block; width: 100%; height: auto; transform-origin: 50% 100%;
+  transition: transform 150ms ease, opacity 200ms ease, filter 200ms ease;
+  filter: drop-shadow(0 6px 6px rgba(0,0,0,0.45));
+}
+.bottle-btn::after {
+  content: ''; position: absolute; left: 12%; right: 12%; bottom: -3px; height: 9px; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
+  pointer-events: none;
+}
+.bottle-btn[data-out="true"]::after { opacity: 0.35; }
 .bottle-btn:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 2px; }
+.bottle-btn:focus-visible svg { transform: translateY(-4px); }
+.bottle-btn:active svg { transform: scale(0.96); }
 .bottle-btn[aria-disabled="true"] { cursor: default; } /* guests can look, not toggle */
 .bottle-btn[data-out="true"] svg { opacity: 0.28; filter: grayscale(0.85); }
 .bottle-tag {
@@ -138,10 +173,28 @@ body {
   background: var(--color-cream); padding: 0.05rem 0.4rem; border-radius: 2px;
   opacity: 0; pointer-events: none; transition: opacity 120ms; z-index: 2;
 }
-.bottle-btn:hover .bottle-tag, .bottle-btn:focus-visible .bottle-tag { opacity: 1; }
+.bottle-btn:focus-visible .bottle-tag { opacity: 1; }
+/* Hover only where there is a pointer that hovers; on a phone :hover sticks after a tap. */
+@media (hover: hover) {
+  .bottle-btn:hover svg { transform: translateY(-4px); }
+  .bottle-btn:hover .bottle-tag { opacity: 1; }
+}
+/* What a tap did, since there is no hover tag to read on a phone. */
+.bottle-toast {
+  position: fixed; left: 50%; bottom: calc(1.25rem + env(safe-area-inset-bottom)); z-index: 20;
+  transform: translate(-50%, 0.5rem);
+  max-width: calc(100vw - 2rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: var(--color-cream); color: var(--color-wood-deep);
+  font-family: var(--font-display); font-style: italic; font-size: 1rem;
+  padding: 0.45rem 0.9rem; border-radius: 2px; box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+  opacity: 0; pointer-events: none;
+  transition: opacity 150ms ease-out, transform 150ms ease-out;
+}
+.bottle-toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); transition-duration: 200ms; }
 
 /* ---- counter ---- */
 .counter-area { flex: 1; padding: 1rem 1.25rem 0; }
+.counter-dock { display: flex; flex-direction: column; }
 .bar-top {
   height: 28px;
   background: linear-gradient(180deg, var(--color-wood-light), var(--color-wood) 45%, var(--color-wood-deep));
@@ -156,7 +209,15 @@ body {
   border-left: 3px solid var(--color-brass); padding: 0;
 }
 .drawer::backdrop { background: rgba(0,0,0,0.55); }
-.drawer-inner { padding: 1.25rem; overflow-y: auto; height: 100%; }
+.drawer-inner {
+  padding: 0 1.25rem calc(1.25rem + env(safe-area-inset-bottom)); overflow-y: auto; height: 100%;
+  overscroll-behavior: contain;
+}
+.drawer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 1; margin-bottom: 1rem;
+  padding: calc(1.25rem + env(safe-area-inset-top)) 0 0.75rem; background: var(--color-wood-deep);
+}
 .drawer-form { background: rgba(0,0,0,0.25); padding: 1rem; border-radius: 4px; }
 .drawer-field { display: grid; gap: 0.25rem; font-size: 0.85rem; color: var(--color-cream-dim); }
 .drawer-field input[type="color"] { width: 100%; height: 2.4rem; border: 0; background: none; cursor: pointer; }
@@ -164,7 +225,7 @@ body {
 /* ---- robot ---- */
 .robot-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
 .speech {
-  position: relative; max-width: 24rem;
+  position: relative; max-width: min(24rem, 100%); text-wrap: pretty;
   background: var(--color-cream); color: var(--color-wood-deep);
   font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.15rem; line-height: 1.35;
   padding: 0.7rem 1rem; border-radius: 12px 12px 12px 2px;
@@ -202,51 +263,35 @@ body {
   box-shadow: inset 0 0 40px rgba(0,0,0,0.45), 0 12px 24px rgba(0,0,0,0.45);
   padding: 1.25rem 1.5rem; min-height: 16rem;
 }
-.chalk-title { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; line-height: 1.1; }
+.chalk-title { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; line-height: 1.1; text-wrap: balance; }
 .chalk-list { margin-top: 0.75rem; display: grid; gap: 0.25rem; }
 .chalk-item {
-  background: none; border: 0; padding: 0.15rem 0; cursor: pointer; text-align: left;
+  background: none; border: 0; padding: 0.3rem 0; min-height: var(--tap); cursor: pointer; text-align: left;
   font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.35rem; color: var(--color-chalk);
   text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color 120ms;
 }
 .chalk-item:hover, .chalk-item:focus-visible { text-decoration-color: var(--color-chalk); outline: none; }
+.chalk-item:active { opacity: 0.7; }
 .chalk-empty { font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 1.3rem; opacity: 0.8; }
-.chalk-new { display: inline-block; margin-top: 1rem; background: none; border: 1px dashed rgba(233,228,214,0.5); color: var(--color-chalk); padding: 0.4rem 0.8rem; cursor: pointer; font-family: var(--font-body); }
+.chalk-new { display: inline-block; margin-top: 1rem; min-height: var(--tap); background: none; border: 1px dashed rgba(233,228,214,0.5); color: var(--color-chalk); padding: 0.4rem 0.8rem; cursor: pointer; font-family: var(--font-body); }
 .chalk-new:hover { border-style: solid; }
 .chalk-form { margin-top: 1rem; }
 
 .drink-card {
   background: var(--color-cream); color: var(--color-wood-deep);
-  padding: 1.25rem 1.5rem; border-radius: 2px; max-width: 30rem;
+  padding: 1.25rem 1.5rem; border-radius: 2px; max-width: 30rem; text-wrap: pretty;
   box-shadow: 0 10px 22px rgba(0,0,0,0.45);
 }
 .drink-dialog { background: transparent; border: 0; padding: 1rem; max-width: 34rem; }
 .drink-dialog::backdrop { background: rgba(0,0,0,0.6); }
 
 /* ---- counter ---- */
-.counter { max-width: 72rem; margin: 1rem auto 0; padding: 0 1.25rem 1rem; }
+.counter { width: 100%; max-width: 72rem; margin: 1rem auto 0; padding: 0 1.25rem 1rem; }
 .counter-form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
-.counter-label { font-family: var(--font-display); font-style: italic; font-size: 1.4rem; color: var(--color-cream); }
+.counter-input { flex: 1; min-width: 0; }
+.counter-label { font-family: var(--font-display); font-style: italic; font-size: 1.4rem; color: var(--color-cream); text-wrap: pretty; }
 .counter-result { margin-top: 1rem; animation: slide-up 300ms ease-out both; }
 @keyframes slide-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
-
-/* ---- realism pass: bottles fill the bar ---- */
-.shelf-row { justify-content: space-between; padding-left: 1.5rem; padding-right: 1.5rem; }
-.shelf-group { flex: 1 1 0; min-width: 0; }
-.shelf-bottles { width: 100%; justify-content: space-evenly; gap: 0; }
-.bottle-btn { width: clamp(46px, 4.6vw, 78px); }
-.bottle-btn svg { width: 100%; height: auto; }
-.bottle-btn::after {
-  content: ''; position: absolute; left: 12%; right: 12%; bottom: -3px; height: 9px; border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
-  pointer-events: none;
-}
-.bottle-btn[data-out="true"]::after { opacity: 0.35; }
-@media (max-width: 900px) {
-  .shelf-group { flex: 0 0 auto; }
-  .shelf-bottles { width: auto; gap: 0.15rem; }
-  .bottle-btn { width: 46px; }
-}
 
 /* dialogs: Tailwind preflight zeroes dialog margins; center them again */
 .drink-dialog { margin: auto; }
@@ -255,8 +300,49 @@ body {
 .history { min-height: 100dvh; background: linear-gradient(180deg, var(--color-wall-deep), var(--color-wall) 30%); }
 .history-body { max-width: 44rem; margin: 0 auto; padding: 1rem 1.25rem 4rem; }
 .history-menu { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-brass-dim); }
-.history-drink summary { cursor: pointer; font-family: var(--font-display); font-style: italic; font-size: 1.2rem; }
+.history-drink summary { cursor: pointer; padding: 0.4rem 0; font-family: var(--font-display); font-style: italic; font-size: 1.2rem; }
 
 .drink-dialog-inner { background: var(--color-cream); border-radius: 2px; box-shadow: 0 10px 22px rgba(0,0,0,0.45); }
 .drink-dialog-inner .drink-card { box-shadow: none; }
-.drink-dialog-inner > button { display: block; margin: 0 1.5rem 1rem auto; color: var(--color-wood-deep); }
+.drink-dialog-inner > button { display: block; margin: 0 1.1rem 0.5rem auto; padding: 0.5rem 0.4rem; color: var(--color-wood-deep); }
+
+/* ---- phones and small tablets ---- */
+@media (max-width: 900px) {
+  :root { --docked: 1; } /* read by components/useDocked.ts */
+  /* Every row fits its bottles at a tappable size; a category or split row that would not
+     fit takes the full width and wraps, so the whole bar is visible without sideways scrolling. */
+  .shelf-cat, .shelf-unit { flex: 1 1 0; min-width: min(100%, calc(var(--n) * 42px)); }
+  .bottle-btn { width: min(46px, calc((100vw - 3.5rem) / 8)); }
+  .shelf-bottles { padding-top: 1.25rem; }
+
+  .robot { width: min(220px, 56vw); height: auto; }
+  .chalkboard { padding: 1rem 1.1rem; border-width: 8px; }
+
+  /* The counter docks to the bottom of the screen: the wood lip on top, the napkin below it,
+     so you can order from anywhere on the page. Guests have nothing to order with. */
+  .counter-dock:not([data-guest]) {
+    position: sticky; bottom: 0; z-index: 10;
+    background: linear-gradient(180deg, var(--color-wood-deep), #1a100a);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .counter-dock:not([data-guest]) .bar-top { order: -1; }
+  .counter-dock:not([data-guest]) .counter { margin-top: 0; padding: 0.6rem 1rem 0.75rem; }
+  .counter-form { display: grid; grid-template-columns: 1fr auto; gap: 0.4rem 0.5rem; }
+  .counter-label { grid-column: 1 / -1; font-size: 1.15rem; line-height: 1.2; }
+  .counter-input { padding: 0.6rem 0.8rem; }
+  .counter-result { display: none; } /* served as a sheet instead, see Counter.tsx */
+  .bottle-toast { bottom: calc(7.5rem + env(safe-area-inset-bottom)); }
+
+  /* Drinks come up as a bottom sheet. */
+  .drink-dialog { margin: auto 0 0; width: 100%; max-width: none; padding: 0; }
+  .drink-dialog-inner {
+    border-radius: 14px 14px 0 0; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: sheet-up 240ms ease-out both;
+  }
+  .drink-dialog-inner .drink-card { max-width: none; }
+  .drink-dialog-inner > button { width: 100%; margin: 0; padding: 0.9rem; text-align: center; border-top: 1px solid rgba(42,24,16,0.1); }
+  @keyframes sheet-up { from { transform: translateY(24px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+  .drawer { border-left: 0; max-width: none; }
+}
